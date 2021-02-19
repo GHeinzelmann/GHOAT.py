@@ -1,0 +1,6 @@
+source leaprc._guest_ff_
+source leaprc._host_ff_
+
+# Load the dummy atom parameters
+loadamberparams dum.frcmod
+DUM = loadmol2 dum.mol2                                    
