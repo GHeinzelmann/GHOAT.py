@@ -22,7 +22,7 @@ The folder ./GHOAT/structures contains complex structure files for eight guests 
 
 cpptraj -p cb7-1.prmtop -y cb7-1.rst7 -x host-cb7-guest-1.pdb > cpptraj.log
  
-The resulting pdb file should be named according to the host and guest chosen names, as <hostname>-<guest-name>.pdb. In the present example the pdb complex files are named host-cb7-guest-1.pdb and host-cb7-giest-23.pdb, and they should be placed inside the ./GHOAT/structures/ folder. Other guest-host structures can be downloaded from the benchmark repository in [5], and with the same procedure shown here can be evaluated with GHOAT.py in a fully automated way.  
+The resulting pdb file should be named according to the host and guest chosen names, as [hostname]-[guest-name].pdb. In the present example the pdb complex files are named host-cb7-guest-1.pdb and host-cb7-giest-23.pdb, and they should be placed inside the ./GHOAT/structures/ folder. Other guest-host structures can be downloaded from the benchmark repository in [5], and with the same procedure shown here can be evaluated with GHOAT.py in a fully automated way.  
 
 The guest and host partial charges were also taken from the benchmark set (calculated using RESP [6]), and can be found in the ./GHOAT/parameters folder. In order for the program to recognize them, they should be in the form of mol2 files with the same naming as in the structure file, in our case they are the host-cb7.mol2, guest-1.mol2 and guest-23.mol2 files. If charged parameters are not available, GHOAT is able to generate them automatically using the AM1-BCC charge model [7], as explained in the user guide.  
 
