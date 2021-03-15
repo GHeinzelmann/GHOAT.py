@@ -22,7 +22,7 @@ The folder ./GHOAT/structures contains complex structure files for eight guests 
 
 cpptraj -p cb7-1.prmtop -y cb7-1.rst7 -x host-cb7-guest-1.pdb > cpptraj.log
  
-The resulting pdb file should be named according to the host and guest chosen names, as [hostname]-[guestname].pdb. In the present example the pdb complex files are named host-cb7-guest-1.pdb and host-cb7-giest-23.pdb, and they should be placed inside the ./GHOAT/structures/ folder. Other guest-host structures can be downloaded from the benchmark repository in [5], and with the same procedure shown here can be evaluated with GHOAT.py in a fully automated way.  
+The resulting pdb file should be named according to the host and guest chosen names, as [hostname]-[guestname].pdb. In the present example the pdb complex files are named host-cb7-guest-1.pdb and host-cb7-guest-23.pdb, and they should be placed inside the ./GHOAT/structures/ folder. Other guest-host structures can be downloaded from the benchmark repository in [5], and with the same procedure shown here can be evaluated with GHOAT.py in a fully automated way.  
 
 The guest and host partial charges were also taken from the benchmark set (calculated using RESP [6]), and can be found in the ./GHOAT/parameters folder. In order for the program to recognize them, they should be in the form of mol2 files with the same naming as in the structure file, in our case they are the host-cb7.mol2, guest-1.mol2 and guest-23.mol2 files. If charged parameters are not available, GHOAT is able to generate them automatically using the AM1-BCC charge model [7], as explained in the user guide.  
 
@@ -38,7 +38,7 @@ python GHOAT.py -i input.in -s equil
 
 GHOAT.py is compatible with python 3.8 versions. If you have another version, or you find that this command gives an error (such as the absence of the numpy module), you can use the python version included in the Ambertools20 distribution:
 
-$AMBERHOME/miniconda/bin/python BAT.py -i input.in -s equil
+$AMBERHOME/miniconda/bin/python GHOAT.py -i input.in -s equil
 
 This command will create an ./equil folder, with one folder inside for each of the guests. In order to run the simulations for each guest, you can use the run-local.bash script (to run them locally), or the PBS-run script, which is designed to run in a queue system such as TORQUE. Both of these files might have to be adjusted, depending on your computer or server configuration. The number of simulations and the applied restraints will depend on the _release_eq_ array defined in the input file. 
 
@@ -46,7 +46,7 @@ This command will create an ./equil folder, with one folder inside for each of t
 
 ### Simulations
 
-Starting from the states created in the equil stage, we can now perform the binding free energy calculations, which will be located inside the ./fe folder, using the simultaneous decoupling recoupling (SDR) method. Again in the program main folder, type:
+Starting from the states created in the equil stage, we can now perform the binding free energy calculations, which will be located inside the ./fe folder, using the simultaneous decoupling and recoupling (SDR) method. Again in the ./GHOAT/ folder, type:
 
 python GHOAT.py -i input.in -s fe
 
@@ -54,7 +54,7 @@ For each guest, a folder will be created inside ./fe, and inside there will be t
 
 ### Analysis
 
-Once all of the simulations are concluded, it is time to process the output files and obtain the binding free energies. Here a few parameters concerning the analysis can be set in the input file, such as using TI or MBAR [9] for decoupling/recoupling, number of blocks for block data analysis, and the Gaussian weights if TI is used for the SDR step. Inside the main folder type:
+Once all of the simulations are concluded, it is time to process the output files and obtain the binding free energies. Here a few parameters concerning the analysis can be set in the input file, such as using TI or MBAR [9] for decoupling/recoupling, number of blocks for block data analysis, and the Gaussian weights if TI is used for the SDR step. Inside the ./GHOAT/ folder type:
 
 python GHOAT.py -i input-dd.in -s analysis
 
