@@ -11,7 +11,7 @@ import numpy as np
 from lib.pymbar import MBAR # multistate Bennett acceptance ratio
 from lib.pymbar import timeseries # timeseries analysis
 
-def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dd_type, rest):
+def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dec_int, rest):
 
 
     # Set initial values to zero
@@ -31,7 +31,7 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
           win = j
           os.chdir('%s%02d' %(comp, int(win)))
           if comp == 't' and win == 0:
-            # Calculate analytical release for pmf and dd
+            # Calculate guest analytical release in bulk
             with open('disang.rest', "r") as f_in:
               lines = (line.rstrip() for line in f_in)
               lines = list(line for line in lines if '#Lig_TR' in line)
@@ -65,8 +65,8 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
             fout.close()
           os.chdir('../')
       elif comp == 'e' or comp == 'v':
-        os.chdir('dd')
-        if dd_type == 'ti':
+        os.chdir('sdr')
+        if dec_int == 'ti':
           # Get dvdl values from output file
           for j in range(0, len(lambdas)):
             data = []
@@ -95,7 +95,7 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
                 fout.write('%5d   %9.4f\n' % (t+1, float(data[t])))
               fout.close()
             os.chdir('../')
-        elif dd_type == 'mbar':
+        elif dec_int == 'mbar':
           # Get potential energy values from output file
           for j in range(0, len(lambdas)):
             data = []
@@ -145,16 +145,16 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
         mode = 'sub'
         fe_mbar(comp, guest, mode, rest_file, temperature)
       else:
-        if dd_type == 'ti':
+        if dec_int == 'ti':
           rest_file = 'dvdl.dat'
           mode = 'all'
-          fe_dd(comp, guest, mode, lambdas, weights, dd_type, rest_file, temperature)
-        elif dd_type == 'mbar':
+          fe_dd(comp, guest, mode, lambdas, weights, dec_int, rest_file, temperature)
+        elif dec_int == 'mbar':
           rest_file = 'energies.dat'
           mode = 'all'
-          fe_dd(comp, guest, mode, lambdas, weights, dd_type, rest_file, temperature)
+          fe_dd(comp, guest, mode, lambdas, weights, dec_int, rest_file, temperature)
           mode = 'sub'
-          fe_dd(comp, guest, mode, lambdas, weights, dd_type, rest_file, temperature)
+          fe_dd(comp, guest, mode, lambdas, weights, dec_int, rest_file, temperature)
 
     # Get free energies for the blocks
     for i in range(0, len(components)):
@@ -165,14 +165,14 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
           mode = 'b%02d' % (k+1)
           fe_mbar(comp, guest, mode, rest_file, temperature)
         else:
-          if dd_type == 'ti':
+          if dec_int == 'ti':
             rest_file = 'dvdl%02d.dat' % (k+1) 
             mode = 'b%02d' % (k+1) 
-            fe_dd(comp, guest, mode, lambdas, weights, dd_type, rest_file, temperature)
-          elif dd_type == 'mbar':
+            fe_dd(comp, guest, mode, lambdas, weights, dec_int, rest_file, temperature)
+          elif dec_int == 'mbar':
             rest_file = 'ener%02d.dat' % (k+1) 
             mode = 'b%02d' % (k+1) 
-            fe_dd(comp, guest, mode, lambdas, weights, dd_type, rest_file, temperature)
+            fe_dd(comp, guest, mode, lambdas, weights, dec_int, rest_file, temperature)
 
     sys.stdout = sys.__stdout__
 
@@ -210,8 +210,8 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
           fe_u = float(splitdata[1])
         os.chdir('../')
       elif comp == 'v' or comp == 'e':
-        os.chdir('dd')
-        with open('./data/'+dd_type+'-'+comp+'-all.dat', "r") as f_in:
+        os.chdir('sdr')
+        with open('./data/'+dec_int+'-'+comp+'-all.dat', "r") as f_in:
           lines = (line.rstrip() for line in f_in)
           lines = list(line for line in lines if line)
           data = lines[-1]
@@ -260,8 +260,8 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
             sd_u = np.std(b_data)
         os.chdir('../')
       elif comp == 'e' or comp == 'v': 
-        os.chdir('dd')
-        if dd_type == 'mbar':
+        os.chdir('sdr')
+        if dec_int == 'mbar':
           if comp == 'e':
             b_data = [] 
             for k in range(0, blocks):
@@ -282,7 +282,7 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
                 splitdata = data.split()
                 b_data.append(float(splitdata[1]))
             sd_v = np.std(b_data)
-        elif dd_type == 'ti':
+        elif dec_int == 'ti':
           if comp == 'e':
             b_data = [] 
             for k in range(0, blocks):
@@ -341,8 +341,8 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
             fb_u = float(splitdata[1])
           os.chdir('../')
         elif comp == 'v' or comp == 'e':
-          os.chdir('dd')
-          with open('./data/'+dd_type+'-'+comp+'-b%02d.dat' %(k+1), "r") as f_in:
+          os.chdir('sdr')
+          with open('./data/'+dec_int+'-'+comp+'-b%02d.dat' %(k+1), "r") as f_in:
             lines = (line.rstrip() for line in f_in)
             lines = list(line for line in lines if line)
             data = lines[-1]
@@ -356,7 +356,7 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
       fb_b = fe_b
       fb_bd = fe_bd
       blck_apr = fb_a + fb_l + fb_t + fb_u + fb_b + fb_c + fb_r
-      blck_dd = fb_a + fb_l + fb_t + fb_e + fb_v + fb_bd + fb_c + fb_r
+      blck_sdr = fb_a + fb_l + fb_t + fb_e + fb_v + fb_bd + fb_c + fb_r
 
       # Write results for the blocks
       resfile = open('./Results/Res-b%02d.dat' %(k+1), 'w')
@@ -365,21 +365,21 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
       resfile.write('%-20s %8.2f\n' % ('Attach host CF', fb_a))
       resfile.write('%-20s %8.2f\n' % ('Attach guest CF', fb_l))
       resfile.write('%-20s %8.2f\n' % ('Attach guest TR', fb_t))
-      resfile.write('%-20s %8.2f\n' % ('Electrostatic ('+dd_type.upper()+')', fb_e))
-      resfile.write('%-20s %8.2f\n' % ('Lennard-Jones ('+dd_type.upper()+')', fb_v))
+      resfile.write('%-20s %8.2f\n' % ('Electrostatic ('+dec_int.upper()+')', fb_e))
+      resfile.write('%-20s %8.2f\n' % ('Lennard-Jones ('+dec_int.upper()+')', fb_v))
       resfile.write('%-20s %8.2f\n' % ('Release guest TR',fb_bd))
       resfile.write('%-20s %8.2f\n' % ('Release guest CF', fb_c))
       resfile.write('%-20s %8.2f\n\n' % ('Release host CF', fb_r))
-      resfile.write('%-20s %8.2f\n' % ('Binding free energy', blck_dd))
+      resfile.write('%-20s %8.2f\n' % ('Binding free energy', blck_sdr))
       resfile.write('\n----------------------------------------------\n\n')
       resfile.write('Energies in kcal/mol\n')
       resfile.close()
 
     # Write final results
     total_apr = fe_a + fe_l + fe_t + fe_u + fe_b + fe_c + fe_r
-    total_dd = fe_a + fe_l + fe_t + fe_e + fe_v + fe_bd + fe_c + fe_r
+    total_sdr = fe_a + fe_l + fe_t + fe_e + fe_v + fe_bd + fe_c + fe_r
     sd_apr = math.sqrt(sd_a**2 + sd_l**2 + sd_t**2 + sd_u**2 + sd_b**2 + sd_c**2 + sd_r**2)
-    sd_dd = math.sqrt(sd_a**2 + sd_l**2 + sd_t**2 + sd_e**2 + sd_v**2 + sd_b**2 + sd_c**2 + sd_r**2)
+    sd_sdr = math.sqrt(sd_a**2 + sd_l**2 + sd_t**2 + sd_e**2 + sd_v**2 + sd_b**2 + sd_c**2 + sd_r**2)
 
     resfile = open('./Results/Results.dat', 'w')
     resfile.write('\n----------------------------------------------\n\n')
@@ -387,12 +387,12 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
     resfile.write('%-20s %8.2f (%3.2f)\n' % ('Attach host CF', fe_a, sd_a))
     resfile.write('%-20s %8.2f (%3.2f)\n' % ('Attach guest CF', fe_l, sd_l))
     resfile.write('%-20s %8.2f (%3.2f)\n' % ('Attach guest TR', fe_t, sd_t))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Electrostatic ('+dd_type.upper()+')', fe_e, sd_e))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Lennard-Jones ('+dd_type.upper()+')', fe_v, sd_v))
+    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Electrostatic ('+dec_int.upper()+')', fe_e, sd_e))
+    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Lennard-Jones ('+dec_int.upper()+')', fe_v, sd_v))
     resfile.write('%-20s %8.2f \n' % ('Release guest TR',fe_bd))
     resfile.write('%-20s %8.2f (%3.2f)\n' % ('Release guest CF', fe_c, sd_c))
     resfile.write('%-20s %8.2f (%3.2f)\n\n' % ('Release host CF', fe_r, sd_r))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Binding free energy', total_dd, sd_dd))
+    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Binding free energy', total_sdr, sd_sdr))
     resfile.write('\n----------------------------------------------\n\n')
     resfile.write('Energies in kcal/mol\n')
     resfile.close()
@@ -698,7 +698,7 @@ def fe_int(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, temperature):
     t3_int = np.trapz(f_t3(intrange),intrange)
     return R*temperature*np.log((1/(8.0*np.pi*np.pi))*(1.0/1660.0)*r1_int*a1_int*t1_int*a2_int*t2_int*t3_int)
 
-def fe_dd(comp, guest, mode, lambdas, weights, dd_type, rest_file, temperature):
+def fe_dd(comp, guest, mode, lambdas, weights, dec_int, rest_file, temperature):
 
     kB = 1.381e-23 * 6.022e23 / (4.184 * 1000.0) # Boltzmann constant in kJ/mol/K
     beta = 1/(kB * temperature) # beta
@@ -707,12 +707,12 @@ def fe_dd(comp, guest, mode, lambdas, weights, dd_type, rest_file, temperature):
 
     os.chdir('fe')
     os.chdir(guest)
-    os.chdir('dd')
+    os.chdir('sdr')
     if not os.path.exists('data'):
       os.makedirs('data')
 
     # Define log file
-    sys.stdout = open('./data/'+dd_type+'-'+comp+'-'+mode+'.dat', 'w')
+    sys.stdout = open('./data/'+dec_int+'-'+comp+'-'+mode+'.dat', 'w')
 
     ### Determine Number of windows
     K = 0
@@ -721,7 +721,7 @@ def fe_dd(comp, guest, mode, lambdas, weights, dd_type, rest_file, temperature):
       K = K+1
       filename = './'+comp+'%02.0f/%s' % (K, rest_file)
 
-    if dd_type == 'ti':
+    if dec_int == 'ti':
       deltag = 0
       dvdl = []
       for k in range(K):
@@ -743,7 +743,7 @@ def fe_dd(comp, guest, mode, lambdas, weights, dd_type, rest_file, temperature):
         deltag = deltag + dvdl[i]*weights[i]
 
       print ('\n%-8s %9.5f' % ('deltaG  ', float(deltag)))
-    elif dd_type == 'mbar':
+    elif dec_int == 'mbar':
 
       ### Allocate storage for simulation data
       N = np.zeros([K], np.int32)                       # N_k[k] is the number of snapshots to be used from umbrella simulation k

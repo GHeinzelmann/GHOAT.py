@@ -7,12 +7,12 @@
 # Calculation definitions
 
 host = host-cb7              # Choose host name
-guest_list = [guest-17]       # Choose guest name
+guest_list = [guest-1,guest-23]       # Choose guest name
 
 # Guest residue name
 
 host_code           = CB7     # Three letter residue name for host
-guest_list_code     = [MOL]   # Three letter residue names for guests (in the same order as the guest_list array)
+guest_list_code     = [MOL,MOL]   # Three letter residue names for guests (in the same order as the guest_list array)
 
 # Host anchors 
 
@@ -20,11 +20,11 @@ H1 = :1@C15
 H2 = :1@C28
 H3 = :1@C40
 
-final_host_num = 1
+final_host_num = 1  # Automate this!
 
 # Variables for setting up equilibrium and free energy calculations, also used on analysis       
 
-fe_type = all  # Type of free energy calculations (all, rest, dd, custom)
+fe_type = all  # Type of free energy calculations (all, rest, sdr, custom)
 
 components = [ e v ] # Used with custom option for fe_type
 
@@ -32,17 +32,19 @@ release_eq = [ 50.0 25.0 0.00 ]   # Equilibrium gradual release weights
 
 attach_rest = [ 0.00 0.20 0.40 0.80 1.60 2.40 4.00 5.50 8.65 11.80 18.10 24.40 37.00 49.60 74.80 100.00 ]   # Restraints attach/release weights
 
-lambdas = [ 0.0001 0.02 0.04 0.06 0.08 0.10  0.15  0.20  0.25  0.30  0.40  0.50  0.60  0.70 0.75 0.80 0.85 0.90 0.92 0.94 0.96 0.98 0.9999 ]
+# lambdas = [ 0.0001 0.02 0.04 0.06 0.08 0.10  0.15  0.20  0.25  0.30  0.40  0.50  0.60  0.70 0.75 0.80 0.85 0.90 0.92 0.94 0.96 0.98 0.9999 ] # MBAR
+
+lambdas = [ 0.00922 0.04794 0.11505 0.20634 0.31608 0.43738 0.56262 0.68392 0.79366 0.88495 0.95206 0.99078 ] # TI 
 
 # Additional variables for analysis 
 
 weights = [ 0.02359 0.05347 0.08004 0.10158 0.11675 0.12457 0.12457 0.11675 0.10158 0.08004 0.05347 0.02359 ] # Weights for Gaussian quadrature, make sure it matches the lambda values
 
-dd_type = TI # Integration method for double decoupling (MBAR or TI with Gaussian quadrature)
+dec_int = TI # Integration method for double decoupling (MBAR or TI with Gaussian quadrature)
 
 blocks = 5 # Number of blocks for block data analysis
 
-dd_dist = 30.00         # z distance between site and bulk molecules on DD
+sdr_dist = 30.00         # z distance between site and bulk molecules on DD
 
 # Force constants
 
@@ -69,7 +71,7 @@ neutralize_only = no     # neutralize only or also ionize (yes or no)
 cation = Na+             # cation for neutralization/ionization                
 anion = Cl-              # anion  for neutralization/ionization   
 num_cations = 8         # number of extra cations after neutralization
-num_cat_ligbox = 8       # number of extra cations after neutralization for ligand box
+num_cat_ligbox = 6       # number of extra cations after neutralization for ligand box
 
 # Simulation parameters
 
@@ -103,7 +105,7 @@ v_steps2	=  800000   # Number of steps for window component v (production)
 
 # Host restraints type
 
-host_rest_type  = dihedrals   # Use host dihedrals conformational restraints
+host_rest_type  = dihedrals   # Maybe use distances only, work on this!
 
 # Guest anchor search definitions
 

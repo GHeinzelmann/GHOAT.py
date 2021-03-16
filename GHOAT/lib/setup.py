@@ -10,7 +10,7 @@ import sys as sys
 from lib import scripts 
 import numpy as np
 
-def restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, dd_dist):
+def restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist):
 
     rst = []
     atm_num = []
@@ -865,11 +865,11 @@ def dec_files(temperature, mol, num_sim, guest, comp, win, stage, steps1, steps2
           for line in fin:
             fout.write(line.replace('_temperature_', str(temperature)).replace('lbd_val', '%6.5f' %float(weight)).replace('mk1',str(mk1)).replace('mk2',str(mk2)))
       # Create running scripts for local and server
-      with open('../run_files/local-dd.bash', "rt") as fin:
+      with open('../run_files/local-sdr.bash', "rt") as fin:
         with open("./run-local.bash", "wt") as fout:
           for line in fin:
             fout.write(line)
-      with open('../run_files/PBS-dd', "rt") as fin:
+      with open('../run_files/PBS-sdr', "rt") as fin:
         with open("./PBS-run", "wt") as fout:
           for line in fin:
             fout.write(line.replace('STAGE', guest).replace('POSE', '%s%02d' %(comp, int(win))))
@@ -885,11 +885,11 @@ def dec_files(temperature, mol, num_sim, guest, comp, win, stage, steps1, steps2
           for line in fin:
             fout.write(line.replace('_temperature_', str(temperature)).replace('lbd_val', '%6.5f' %float(weight)).replace('mk1',str(mk1)).replace('mk2',str(mk2)).replace('mk3',str(mk3)).replace('mk4',str(mk4)))
       # Create running scripts for local and server
-      with open('../run_files/local-dd.bash', "rt") as fin:
+      with open('../run_files/local-sdr.bash', "rt") as fin:
         with open("./run-local.bash", "wt") as fout:
           for line in fin:
             fout.write(line)
-      with open('../run_files/PBS-dd', "rt") as fin:
+      with open('../run_files/PBS-sdr', "rt") as fin:
         with open("./PBS-run", "wt") as fout:
           for line in fin:
             fout.write(line.replace('STAGE', guest).replace('POSE', '%s%02d' %(comp, int(win))))

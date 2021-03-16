@@ -391,7 +391,7 @@ def build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, h
         for file in glob.glob('../r00/*'):
           shutil.copy(file, './')
 
-def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt, dd_dist):
+def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt, sdr_dist):
 
 
 
@@ -451,7 +451,7 @@ def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, ho
       sp.call('vmd -dispdev text -e prep.tcl', shell=True)
       os.rename('./anchors.txt', 'anchors-'+guest.lower()+'.txt')
 
-      os.chdir('../dd/')
+      os.chdir('../sdr/')
 
     # Copy and replace simulation files for the first window
     if int(win) == 0:
@@ -622,20 +622,20 @@ def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, ho
         build_file.write('TER\n')
         for i in range(0, lig_atom):
             build_file.write('%-4s  %5s %-4s %3s  %4.0f    '%('ATOM', i+1, lig_atomlist[i],mol, float(lig_resid+2)))
-            build_file.write('%8.3f%8.3f%8.3f'%(float(lig_coords[i][0]), float(lig_coords[i][1]),float(lig_coords[i][2]+dd_dist)))
+            build_file.write('%8.3f%8.3f%8.3f'%(float(lig_coords[i][0]), float(lig_coords[i][1]),float(lig_coords[i][2]+sdr_dist)))
 
             build_file.write('%6.2f%6.2f\n'%(0, 0))
         build_file.write('TER\n')
         for i in range(0, lig_atom):
             build_file.write('%-4s  %5s %-4s %3s  %4.0f    '%('ATOM', i+1, lig_atomlist[i],mol, float(lig_resid+3)))
-            build_file.write('%8.3f%8.3f%8.3f'%(float(lig_coords[i][0]), float(lig_coords[i][1]),float(lig_coords[i][2]+dd_dist)))
+            build_file.write('%8.3f%8.3f%8.3f'%(float(lig_coords[i][0]), float(lig_coords[i][1]),float(lig_coords[i][2]+sdr_dist)))
 
             build_file.write('%6.2f%6.2f\n'%(0, 0))
         print('Creating new system for decharging...')
       else:
         for i in range(0, lig_atom):
             build_file.write('%-4s  %5s %-4s %3s  %4.0f    '%('ATOM', i+1, lig_atomlist[i],mol, float(lig_resid + 1)))
-            build_file.write('%8.3f%8.3f%8.3f'%(float(lig_coords[i][0]), float(lig_coords[i][1]),float(lig_coords[i][2]+dd_dist)))
+            build_file.write('%8.3f%8.3f%8.3f'%(float(lig_coords[i][0]), float(lig_coords[i][1]),float(lig_coords[i][2]+sdr_dist)))
 
             build_file.write('%6.2f%6.2f\n'%(0, 0))
         print('Creating new system for vdw decoupling...')
