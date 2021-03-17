@@ -58,7 +58,7 @@ For each guest, a folder will be created inside ./fe, and inside there will be t
 
 Once all of the simulations are concluded, it is time to process the output files and obtain the binding free energies. Here a few parameters concerning the analysis can be set in the input file, such as using TI or MBAR [9] for decoupling/recoupling, number of blocks for block data analysis, and the Gaussian weights if TI is used for the SDR step. Inside the ./GHOAT/ folder type:
 
-python GHOAT.py -i input-dd.in -s analysis
+python GHOAT.py -i input.in -s analysis
 
 You should see a ./Results directory inside each ./fe/guest folder, with all of the components and the final calculated binding free energy located in the Results.dat file. This folder also contains the results for each of the chosen data blocks, which is useful to check for convergence and fluctuations, and is also used to calculate the uncertainties. This fully automated procedure can be readily applied to any other guest that binds to the CB7 host, and with minimal adjustments it can be extended to any other host.
 
