@@ -4,6 +4,8 @@ The Guest-HOst Affinity Tool (GHOAT.py) is a python tool for fully automated abs
 
 GHOAT.py uses the Simultaneous Decoupling and Recoupling (SDR) binding free energy method, which was first introduced by its brother program, the BAT.py software, available at https://github.com/GHeinzelmann/BAT.py [1]. The SDR method is suitable for neutral and charged guests, with and without access to the solvent, making GHOAT.py applicable to any guest-host system of choice. Our software also introduces a gold standard for the application/removal of restraints, so the results can be directly applied to guest and host parameter evaluation and optimization.     
 
+![](doc/Fig-tut.jpg)
+
 # Getting started
 
 To use GHOAT.py, download the files from this repository, which already contain an example of the mematine and amantadine guest molecules binding to the Cucurbit[7]uril host (CB7). In order to perform all the steps from GHOAT.py, the following programs must be installed and in your path:
