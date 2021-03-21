@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 import datetime as dt
 import glob as glob
 import os as os
@@ -10,7 +10,7 @@ import sys as sys
 
 def help_message():
     print('Use the flags -i and -s for the input file and current stage of the calculations')
-    print('Example: python BAT.py -i input.in -s equil')
+    print('Example: python GHOAT.py -i input.in -s equil')
 
 def write_tleap(mol, hmol, guest, host, water_model, water_box, buff, buffer_x, buffer_y, tleap_remove=None):
     shutil.copy('tleap.in', 'tmp_tleap.in')

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 import datetime as dt
 import glob as glob
 import os as os
@@ -9,7 +9,7 @@ import subprocess as sp
 import sys as sys
 from lib import scripts 
 
-def build_equil(guest, host, mol, H1, H2, H3, min_adis, max_adis, l1_range, guest_ff, host_ff, final_host_num):
+def build_equil(guest, host, mol, H1, H2, H3, min_adis, max_adis, l1_range, amber_ff, final_host_num, guest_charge):
 
 
     # Create equilibrium directory
@@ -57,29 +57,25 @@ def build_equil(guest, host, mol, H1, H2, H3, min_adis, max_adis, l1_range, gues
           fout.write(line.replace('hhhh', host.lower()).replace('gggg', guest.lower()).replace('MMM', mol).replace('NN1', h1_atom).replace('H1A', h1_resid).replace('NN2', h2_atom).replace('H2A', h2_resid).replace('NN3', h3_atom).replace('H3A', h3_resid).replace('FIRST','1').replace('LAST', str(final_host_num)).replace('STAGE','equil').replace('DMAX','%4.2f' %max_adis).replace('DMIN','%4.2f' %min_adis).replace('RANG','%4.2f' %l1_range))
 
     # Get parameters for host
-    if not os.path.exists('../../parameters/%s.mol2' %host.lower()):
-      sp.call('babel -i pdb '+host.lower()+'.pdb -o pdb '+host.lower()+'-h.pdb -p 7', shell=True)
-      sp.call('antechamber -i '+host.lower()+'-h.pdb -fi pdb -o '+host.lower()+'.mol2 -fo mol2 -c bcc -s 2 -at '+host_ff.lower()+'', shell=True)
-    else:
-      shutil.copy('../../parameters/%s.mol2' %(host.lower()), './')
+    shutil.copy('../../parameters/%s.mol2' %(host.lower()), './')  # AM1-BCC charges problematic for cyclic hosts, using provided charges only
     if not os.path.exists('../../parameters/%s.frcmod' %host.lower()):
-      if host_ff == 'gaff':
+      if amber_ff == 'gaff':
         sp.call('parmchk2 -i '+host.lower()+'.mol2 -f mol2 -o '+host.lower()+'.frcmod -s 1', shell=True)
-      elif host_ff == 'gaff2':
+      elif amber_ff == 'gaff2':
         sp.call('parmchk2 -i '+host.lower()+'.mol2 -f mol2 -o '+host.lower()+'.frcmod -s 2', shell=True)
     else:
       shutil.copy('../../parameters/%s.frcmod' %(host.lower()), './')
 
     # Get parameters for guest
     if not os.path.exists('../../parameters/%s.mol2' %guest.lower()):
-      sp.call('babel -i pdb '+guest.lower()+'.pdb -o pdb '+guest.lower()+'-h.pdb -p 7', shell=True)
-      sp.call('antechamber -i '+guest.lower()+'-h.pdb -fi pdb -o '+guest.lower()+'.mol2 -fo mol2 -c bcc -s 2 -at '+guest_ff.lower()+'', shell=True)
+      print('Antechamber parameters command: antechamber -i '+guest.lower()+'.pdb -fi pdb -o '+guest.lower()+'.mol2 -fo mol2 -c bcc -s 2 -at '+amber_ff.lower()+' -nc %s' % guest_charge)
+      sp.call('antechamber -i '+guest.lower()+'.pdb -fi pdb -o '+guest.lower()+'.mol2 -fo mol2 -c bcc -s 2 -at '+amber_ff.lower()+' -nc %s' % guest_charge, shell=True)
     else:
-      shutil.copy('../../parameters/%s.mol2' %(guest.lower()), './')
+      shutil.copy('../../parameters/%s.mol2' %(guest.lower()), './') # Provided charges for guest
     if not os.path.exists('../../parameters/%s.frcmod' %guest.lower()):
-      if guest_ff == 'gaff':
+      if amber_ff == 'gaff':
         sp.call('parmchk2 -i '+guest.lower()+'.mol2 -f mol2 -o '+guest.lower()+'.frcmod -s 1', shell=True)
-      elif guest_ff == 'gaff2':
+      elif amber_ff == 'gaff2':
         sp.call('parmchk2 -i '+guest.lower()+'.mol2 -f mol2 -o '+guest.lower()+'.frcmod -s 2', shell=True)
     else:
       shutil.copy('../../parameters/%s.frcmod' %(guest.lower()), './')
@@ -215,7 +211,7 @@ def build_equil(guest, host, mol, H1, H2, H3, min_adis, max_adis, l1_range, gues
     return 'all'
 
     
-def build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt):
+def build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt):
 
 
     # Get files or finding new anchors and building some systems
@@ -302,7 +298,7 @@ def build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, h
           fpath = os.path.join(dname, fname)
           with open(fpath) as f:
             s = f.read()
-            s = s.replace('_step_', dt).replace('_ntpr_', ntpr).replace('_ntwr_', ntwr).replace('_ntwe_', ntwe).replace('_ntwx_', ntwx).replace('_cutoff_', cut).replace('_gamma_ln_', gamma_ln).replace('_barostat_', barostat).replace('_host_ff_', host_ff).replace('_guest_ff_', guest_ff)
+            s = s.replace('_step_', dt).replace('_ntpr_', ntpr).replace('_ntwr_', ntwr).replace('_ntwe_', ntwe).replace('_ntwx_', ntwx).replace('_cutoff_', cut).replace('_gamma_ln_', gamma_ln).replace('_barostat_', barostat).replace('_amber_ff_', amber_ff)
           with open(fpath, "w") as f:
             f.write(s)
 
@@ -391,7 +387,7 @@ def build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, h
         for file in glob.glob('../r00/*'):
           shutil.copy(file, './')
 
-def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt, sdr_dist):
+def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt, sdr_dist):
 
 
 
@@ -470,7 +466,7 @@ def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, ho
           fpath = os.path.join(dname, fname)
           with open(fpath) as f:
             s = f.read()
-            s = s.replace('_step_', dt).replace('_ntpr_', ntpr).replace('_ntwr_', ntwr).replace('_ntwe_', ntwe).replace('_ntwx_', ntwx).replace('_cutoff_', cut).replace('_gamma_ln_', gamma_ln).replace('_barostat_', barostat).replace('_host_ff_', host_ff).replace('_guest_ff_', guest_ff)
+            s = s.replace('_step_', dt).replace('_ntpr_', ntpr).replace('_ntwr_', ntwr).replace('_ntwe_', ntwe).replace('_ntwx_', ntwx).replace('_cutoff_', cut).replace('_gamma_ln_', gamma_ln).replace('_barostat_', barostat).replace('_amber_ff_', amber_ff)
           with open(fpath, "w") as f:
             f.write(s)
 
@@ -647,7 +643,7 @@ def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, ho
         shutil.copy(file, './')
 
 
-def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_def, neut, buffer_x, buffer_y, stage, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt):
+def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_def, neut, buffer_x, buffer_y, stage, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt):
     
     # Copy and replace simulation files
     if stage != 'fe':
@@ -666,7 +662,7 @@ def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_d
           fpath = os.path.join(dname, fname)
           with open(fpath) as f:
             s = f.read()
-            s = s.replace('_step_', dt).replace('_ntpr_', ntpr).replace('_ntwr_', ntwr).replace('_ntwe_', ntwe).replace('_ntwx_', ntwx).replace('_cutoff_', cut).replace('_gamma_ln_', gamma_ln).replace('_barostat_', barostat).replace('_host_ff_', host_ff).replace('_guest_ff_', guest_ff)
+            s = s.replace('_step_', dt).replace('_ntpr_', ntpr).replace('_ntwr_', ntwr).replace('_ntwe_', ntwe).replace('_ntwx_', ntwx).replace('_cutoff_', cut).replace('_gamma_ln_', gamma_ln).replace('_barostat_', barostat).replace('_amber_ff_', amber_ff)
           with open(fpath, "w") as f:
             f.write(s)
       os.chdir(guest)
@@ -907,7 +903,7 @@ def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_d
       os.chdir('../')
 
 
-def guest_box(guest, mol, lig_buffer, water_model, neut, ion_lig, comp, guest_ff):
+def guest_box(guest, mol, lig_buffer, water_model, neut, ion_lig, comp, amber_ff):
 
     # Define volume density for different water models
     if water_model == 'TIP3P':
@@ -923,7 +919,7 @@ def guest_box(guest, mol, lig_buffer, water_model, neut, ion_lig, comp, guest_ff
 
     # Write and run tleap file
     tleap_solvate = open('tleap_solvate.in', 'a')
-    tleap_solvate.write('source leaprc.'+guest_ff+'\n\n')
+    tleap_solvate.write('source leaprc.'+amber_ff+'\n\n')
     tleap_solvate.write('# Load the ligand parameters\n')
     tleap_solvate.write('loadamberparams %s.frcmod\n'%(guest.lower()))
     tleap_solvate.write('%s = loadmol2 %s.mol2\n\n'%(mol.upper(), guest.lower()))

@@ -14,8 +14,10 @@ from lib import analysis
 ion_def = []
 guest_list = []
 guest_list_code = []
+guest_list_charge = []
 guest_def = []
 code_def = []
+charge_def = []
 release_eq = []
 attach_rest = []
 lambdas = []  
@@ -23,6 +25,10 @@ weights = []
 components = []  
 aa1_guests = []  
 aa2_guests = []  
+rec_dihcf_force = 0
+rec_discf_force = 0
+guest_charge = 0
+guest_rot = 'no'
 
 # Read arguments that define input file and stage
 if len(sys.argv) < 5:
@@ -95,14 +101,16 @@ for i in range(0, len(lines)):
             newline = lines[i][1].strip('\'\"-,.:;#()][').split(',')
             for j in range(0, len(newline)):
                guest_list_code.append(newline[j])
+        elif lines[i][0] == 'guest_list_charge':
+            newline = lines[i][1].strip('\'\"-,.:;#()][').split(',')
+            for j in range(0, len(newline)):
+               guest_list_charge.append(newline[j])
         elif lines[i][0] == 'calc_type':
             calc_type = lines[i][1].lower()
         elif lines[i][0] == 'host':
             host = lines[i][1].lower()
         elif lines[i][0] == 'final_host_num':
             final_host_num = lines[i][1]
-        elif lines[i][0] == 'host_rest_type':
-            host_rest_type = lines[i][1]
         elif lines[i][0] == 'h1':
             H1 = lines[i][1]
         elif lines[i][0] == 'h2':
@@ -162,6 +170,14 @@ for i in range(0, len(lines)):
             else:
                 print('Wrong input! Please choose neutralization only or add extra ions')
                 sys.exit(1)
+        elif lines[i][0] == 'guest_rot':
+            if lines[i][1].lower() == 'yes':
+                guest_rot = 'yes'
+            elif lines[i][1].lower() == 'no':
+                guest_rot = 'no'
+            else:
+                print('Wrong input! Please choose yes or no to allow guest rotation')
+                sys.exit(1)
         elif lines[i][0] == 'cation':
             cation = lines[i][1]
         elif lines[i][0] == 'anion':
@@ -186,8 +202,6 @@ for i in range(0, len(lines)):
             lig_angle_force = scripts.check_input('float', lines[i][1], input_file, lines[i][0]) 
         elif lines[i][0] == 'lig_dihcf_force':
             lig_dihcf_force = scripts.check_input('float', lines[i][1], input_file, lines[i][0]) 
-        elif lines[i][0] == 'lig_discf_force':
-            lig_discf_force = scripts.check_input('float', lines[i][1], input_file, lines[i][0]) 
         elif lines[i][0] == 'rec_com_force':
             rec_com_force = scripts.check_input('float', lines[i][1], input_file, lines[i][0]) 
         elif lines[i][0] == 'lig_com_force':
@@ -198,16 +212,13 @@ for i in range(0, len(lines)):
             min_adis = scripts.check_input('float', lines[i][1], input_file, lines[i][0]) 
         elif lines[i][0] == 'max_adis':
             max_adis = scripts.check_input('float', lines[i][1], input_file, lines[i][0]) 
-        elif lines[i][0] == 'host_rest':
-            if lines[i][1].lower() == 'dihedral':
-                host_rest = 'dihedral'
-            elif lines[i][1].lower() == 'all':
-                host_rest = 'all'
+        elif lines[i][0] == 'host_rest_type':
+            if lines[i][1].lower() == 'dihedrals':
+                host_rest_type = 'dihedrals'
             elif lines[i][1].lower() == 'distances':
-                host_rest = 'distances'
+                host_rest_type = 'distances'
             else:
-                print('Wrong input! Please use yes or no to indicate whether protein backbone restraints'
-                      'will be used.')
+                print('Wrong input! Please use distances or dihedrals to define host restraints')
                 sys.exit(1)
         elif lines[i][0] == 'release_eq':
             strip_line = lines[i][1].strip('\'\"-,.:;#()][').split()
@@ -245,14 +256,10 @@ for i in range(0, len(lines)):
             gamma_ln = lines[i][1]
         elif lines[i][0] == 'barostat':
             barostat = lines[i][1]
-        elif lines[i][0] == 'host_ff':
-            host_ff = lines[i][1]
-        elif lines[i][0] == 'guest_ff':
-            guest_ff = lines[i][1]
+        elif lines[i][0] == 'amber_ff':
+            amber_ff = lines[i][1]
         elif lines[i][0] == 'dt':
             dt = lines[i][1]
-
-
 
 # Number of simulations, 1 equilibrium and 1 production
 num_sim = 2
@@ -267,7 +274,7 @@ elif fe_type == 'all':
   components = ['a', 'c', 'r', 'l', 't', 'e', 'v'] 
 
 # Create restraint definitions
-rest = [rec_dihcf_force, rec_discf_force, lig_distance_force, lig_angle_force, lig_dihcf_force, lig_discf_force, rec_com_force, lig_com_force]
+rest = [rec_dihcf_force, rec_discf_force, lig_distance_force, lig_angle_force, lig_dihcf_force, rec_com_force, lig_com_force]
 
 # Create ion definitions
 ion_def = [cation, anion, num_cations]
@@ -301,18 +308,26 @@ for i in range(0, len(guest_list_code)):
 if stage == 'equil':
   comp = 'q'
   win = 0
+
+  # Read charges for charge parameterization (if needed)
+  if guest_list_charge:
+    for i in range(0, len(guest_list_charge)):
+      charge_def.append(guest_list_charge[i])
+
   # Create equilibrium systems for all guests listed in the input file
   for i in range(0, len(guest_def)):
     rng = len(release_eq) - 1
     guest = guest_def[i]
     mol = code_def[i]
+    if guest_list_charge:
+      guest_charge = charge_def[i]
     if not os.path.exists('./structures/'+host+'-'+guest+'.pdb'):
       continue
     print('Setting up '+str(guest_def[i]))
     # Get number of simulations
     num_sim = len(release_eq)
     # Create aligned initial complex
-    anch = build.build_equil(guest, host, mol, H1, H2, H3, min_adis, max_adis, l1_range, guest_ff, host_ff, final_host_num)
+    anch = build.build_equil(guest, host, mol, H1, H2, H3, min_adis, max_adis, l1_range, amber_ff, final_host_num, guest_charge)
     if anch == 'anch1':
       aa1_guests.append(guest)
       os.chdir('../')
@@ -323,13 +338,13 @@ if stage == 'equil':
       continue
     # Solvate system with ions
     print('Creating box...')
-    build.create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_def, neut, buffer_x, buffer_y, stage, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt)
+    build.create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_def, neut, buffer_x, buffer_y, stage, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt)
     # Apply restraints and prepare simulation files
     print('Equil release weights:')
     for i in range(0, len(release_eq)):
       weight = release_eq[i]
       print('%s' %str(weight))
-      setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist)
+      setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist, guest_rot)
       shutil.copy('./'+guest+'/disang.rest', './'+guest+'/disang%02d.rest' %int(i))
     shutil.copy('./'+guest+'/disang%02d.rest' %int(0), './'+guest+'/disang.rest')
     setup.sim_files(hmr, temperature, mol, num_sim, guest, comp, win, stage, eq_steps1, eq_steps2, rng)
@@ -371,7 +386,7 @@ elif stage == 'fe':
           win = k
           if int(win) == 0:
             print('window: %s%02d weight: %s' %(comp, int(win), str(weight)))
-            anch = build.build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt)
+            anch = build.build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt)
             if anch == 'anch1':
               aa1_guests.append(guest)
               break
@@ -379,13 +394,13 @@ elif stage == 'fe':
               aa2_guests.append(guest)
               break
             print('Creating box for guest only...')
-            build.guest_box(guest, mol, lig_buffer, water_model, neut, ion_lig, comp, guest_ff)
-            setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist)
+            build.guest_box(guest, mol, lig_buffer, water_model, neut, ion_lig, comp, amber_ff)
+            setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist, guest_rot)
             setup.sim_files(hmr, temperature, mol, num_sim, guest, comp, win, stage, c_steps1, c_steps2, rng)
           else:
             print('window: %s%02d weight: %s' %(comp, int(win), str(weight)))
-            build.build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt)
-            setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist)
+            build.build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt)
+            setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist, guest_rot)
             setup.sim_files(hmr, temperature, mol, num_sim, guest, comp, win, stage, c_steps1, c_steps2, rng)
         os.chdir('../')
         if len(aa1_guests) != 0:
@@ -402,7 +417,7 @@ elif stage == 'fe':
           win = k
           if int(win) == 0:
             print('window: %s%02d weight: %s' %(comp, int(win), str(weight)))
-            anch = build.build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt)
+            anch = build.build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt)
             if anch == 'anch1':
               aa1_guests.append(guest)
               break
@@ -410,13 +425,13 @@ elif stage == 'fe':
               aa2_guests.append(guest)
               break
             print('Creating box for apo host...')
-            build.create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_def, neut, buffer_x, buffer_y, stage, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt)
-            setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist)
+            build.create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_def, neut, buffer_x, buffer_y, stage, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt)
+            setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist, guest_rot)
             setup.sim_files(hmr, temperature, mol, num_sim, guest, comp, win, stage, r_steps1, r_steps2, rng)
           else:
             print('window: %s%02d weight: %s' %(comp, int(win), str(weight)))
-            build.build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt)
-            setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist)
+            build.build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt)
+            setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist, guest_rot)
             setup.sim_files(hmr, temperature, mol, num_sim, guest, comp, win, stage, r_steps1, r_steps2, rng)
         os.chdir('../')
         if len(aa1_guests) != 0:
@@ -433,14 +448,14 @@ elif stage == 'fe':
           weight = attach_rest[k]
           win = k
           print('window: %s%02d weight: %s' %(comp, int(win), str(weight)))
-          anch = build.build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt)
+          anch = build.build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt)
           if anch == 'anch1':
             aa1_guests.append(guest)
             break
           if anch == 'anch2':
             aa2_guests.append(guest)
             break
-          setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist)
+          setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist, guest_rot)
           steps1 = dic_steps1[comp]
           steps2 = dic_steps2[comp]
           setup.sim_files(hmr, temperature, mol, num_sim, guest, comp, win, stage, steps1, steps2, rng)
@@ -460,13 +475,13 @@ elif stage == 'fe':
           win = k
           if int(win) == 0:
             print('window: %s%02d lambda: %s' %(comp, int(win), str(weight)))
-            anch = build.build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt, sdr_dist)
-            build.create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_def, neut, buffer_x, buffer_y, stage, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt)
-            setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist)
+            anch = build.build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt, sdr_dist)
+            build.create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_def, neut, buffer_x, buffer_y, stage, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt)
+            setup.restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, weight, stage, mol, comp, sdr_dist, guest_rot)
             setup.dec_files(temperature, mol, num_sim, guest, comp, win, stage, steps1, steps2, weight, lambdas, ntwx)
           else:
             print('window: %s%02d lambda: %s' %(comp, int(win), str(weight)))
-            anch = build.build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, guest_ff, host_ff, dt, sdr_dist)
+            anch = build.build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt, sdr_dist)
             setup.dec_files(temperature, mol, num_sim, guest, comp, win, stage, steps1, steps2, weight, lambdas, ntwx)
         os.chdir('../')
     os.chdir('../')
@@ -482,5 +497,5 @@ elif stage == 'analysis':
   # Free energies MBAR/TI and analytical calculations
   for i in range(0, len(guest_def)):
     guest = guest_def[i]
-    analysis.fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dec_int, rest)
+    analysis.fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dec_int, rest, guest_rot)
     os.chdir('../../')

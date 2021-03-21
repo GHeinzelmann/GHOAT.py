@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 import glob as glob
 import os as os
 import re as re
@@ -11,13 +11,13 @@ import numpy as np
 from lib.pymbar import MBAR # multistate Bennett acceptance ratio
 from lib.pymbar import timeseries # timeseries analysis
 
-def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dec_int, rest):
+def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dec_int, rest, guest_rot):
 
 
     # Set initial values to zero
-    fe_a = fe_b = fe_bd = fe_u = fe_t = fe_v = fe_e = fe_c = fe_r = fe_l = 0
-    fb_a = fb_b = fb_bd = fb_u = fb_t = fb_v = fb_e = fb_c = fb_r = fb_l = 0
-    sd_a = sd_b = sd_bd = sd_u = sd_t = sd_v = sd_e = sd_c = sd_r = sd_l = 0
+    fe_a = fe_bd = fe_u = fe_t = fe_v = fe_e = fe_c = fe_r = fe_l = 0
+    fb_a = fb_bd = fb_u = fb_t = fb_v = fb_e = fb_c = fb_r = fb_l = 0
+    sd_a = sd_bd = sd_u = sd_t = sd_v = sd_e = sd_c = sd_r = sd_l = 0
 
     # Acquire simulation data
     os.chdir('fe')
@@ -49,8 +49,7 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
               t3_0  = float(splitdata[6].strip(','))
               k_r = rest[2]
               k_a = rest[3]
-              fe_b = fe_int(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, temperature)
-              fe_bd = fe_int(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, temperature)
+              fe_bd = fe_int(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, guest_rot, temperature)
           # Get restraint trajectory file
           sp.call('cpptraj -i restraints.in >& restraints.log', shell=True)
           # Separate in blocks
@@ -353,9 +352,7 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
               fb_v = float(splitdata[1])
           os.chdir('../')
 
-      fb_b = fe_b
       fb_bd = fe_bd
-      blck_apr = fb_a + fb_l + fb_t + fb_u + fb_b + fb_c + fb_r
       blck_sdr = fb_a + fb_l + fb_t + fb_e + fb_v + fb_bd + fb_c + fb_r
 
       # Write results for the blocks
@@ -376,10 +373,8 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
       resfile.close()
 
     # Write final results
-    total_apr = fe_a + fe_l + fe_t + fe_u + fe_b + fe_c + fe_r
     total_sdr = fe_a + fe_l + fe_t + fe_e + fe_v + fe_bd + fe_c + fe_r
-    sd_apr = math.sqrt(sd_a**2 + sd_l**2 + sd_t**2 + sd_u**2 + sd_b**2 + sd_c**2 + sd_r**2)
-    sd_sdr = math.sqrt(sd_a**2 + sd_l**2 + sd_t**2 + sd_e**2 + sd_v**2 + sd_b**2 + sd_c**2 + sd_r**2)
+    sd_sdr = math.sqrt(sd_a**2 + sd_l**2 + sd_t**2 + sd_e**2 + sd_v**2 + sd_bd**2 + sd_c**2 + sd_r**2)
 
     resfile = open('./Results/Results.dat', 'w')
     resfile.write('\n----------------------------------------------\n\n')
@@ -647,7 +642,7 @@ def fe_mbar(comp, guest, mode, rest_file, temperature):
     os.chdir('../../../')
 
 
-def fe_int(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, temperature):
+def fe_int(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, guest_rot, temperature):
 
     R = 1.987204118e-3 # kcal/mol-K, a.k.a. boltzman constant
     beta = 1/(temperature*R)
@@ -696,7 +691,10 @@ def fe_int(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, temperature):
     t2_int = np.trapz(f_t2(intrange),intrange)
     intrange = dih_per(t3lb,t3ub,t3st,t3_0)
     t3_int = np.trapz(f_t3(intrange),intrange)
-    return R*temperature*np.log((1/(8.0*np.pi*np.pi))*(1.0/1660.0)*r1_int*a1_int*t1_int*a2_int*t2_int*t3_int)
+    if guest_rot == 'yes':
+      return R*temperature*np.log((1/(4.0*np.pi))*(1.0/1660.0)*r1_int*a1_int*t1_int*a2_int*t2_int)
+    else:
+      return R*temperature*np.log((1/(8.0*np.pi*np.pi))*(1.0/1660.0)*r1_int*a1_int*t1_int*a2_int*t2_int*t3_int)
 
 def fe_dd(comp, guest, mode, lambdas, weights, dec_int, rest_file, temperature):
 

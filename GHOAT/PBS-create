@@ -9,5 +9,5 @@ source /home/gheinzel/amber20/amber-new.csh
 
 ### Execute
 cd $PBS_O_WORKDIR
-/home/gheinzel/amber20/miniconda/bin/python GHDD.py -i input.in -s analysis
+/home/gheinzel/amber20/miniconda/bin/python GHOAT.py -i input.in -s equil
 

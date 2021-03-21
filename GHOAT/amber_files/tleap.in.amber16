@@ -1,5 +1,4 @@
-source leaprc._guest_ff_
-source leaprc._host_ff_
+source leaprc._amber_ff_
 
 # Load the dummy atom parameters
 loadamberparams dum.frcmod

@@ -1,6 +1,23 @@
 mol load pdb hhhh-gggg.pdb
 mol load pdb dum.pdb
 
+package require Orient
+namespace import Orient::orient
+
+set sel [atomselect 0 "all"]
+set hos [atomselect 0 "resid FIRST to LAST and noh"]
+set I [draw principalaxes $hos]
+set A [orient $hos [lindex $I 2] {0 0 1}]
+$sel move $A
+set I [draw principalaxes $hos]
+set A [orient $hos [lindex $I 1] {0 1 0}]
+$sel move $A
+set I [draw principalaxes $hos]
+$sel move [transaxis y -90]
+
+set hos [atomselect 0 "resid FIRST to LAST and noh"]
+$sel moveby [vecinvert [measure center $hos weight mass]]
+
 set a [atomselect 0 "resname MMM and noh"]
 set tot [$a get name]
 set n 0
@@ -15,22 +32,24 @@ set amx 90
 
 foreach i $tot {
 set t [atomselect 0 "resname MMM and name $i"]
-set m [atomselect 0 "(resid H1A and name NN1) or (resid H2A and name NN2) or (resid H3A and name NN3)"]
-set d1 [measure center $t]
-set d2 [measure center $m]
-set leng1 [veclength [vecsub $d1 $d2]]
-if {[expr $leng1 < $ran]} {
+set m [measure center $t weight mass]
+foreach {x1 y1 z1} $m {break}
+set xl $x1
+set yl $y1
+set zl $z1
+if {[expr abs([expr $z1]) < $ran] && [expr sqrt([expr pow($x1,2) + pow($y1,2)]) < $ran ]} {
 lappend mat $i
 }
 }
 
-
 foreach i $mat {
 set t [atomselect 0 "resname MMM and name $i"]
-set m [atomselect 0 "(resid H1A and name NN1) or (resid H2A and name NN2) or (resid H3A and name NN3)"]
 set d1 [measure center $t]
-set d2 [measure center $m]
-set leng1 [veclength [vecsub $d1 $d2]]
+foreach {x1 y1 z1} $d1 {break}
+set xl $x1
+set yl $y1
+set zl $z1
+set leng1 [expr sqrt([expr pow($x1,2) + pow($y1,2)])]
 puts $i
 puts $leng1
 if [expr $leng1 < $leng] {
@@ -95,38 +114,21 @@ lappend amat $i}
 
 puts "" 
 foreach i $amat {
-puts $i
-set angle1 {}
-set angle2 {}
-set angle3 {}
-set angle {}
 set t [atomselect 0 "resname MMM and name $i"]
-set p [atomselect 0 "resname MMM and name $aa1"]
-set d [atomselect 0 "resid H1A and name NN1"]
+set m [atomselect 0 "resname MMM and name $aa1"]
 set d1 [measure center $t weight mass]
-set d2 [measure center $p weight mass]
-set a1 [$d get index]
-lappend angle1 $a1
-lappend angle1 "0"
-lappend angle $angle1
-lappend alis [$d get name]
-set a2 [$p get index]
-lappend angle2 $a2
-lappend angle2 "0"
-lappend angle $angle2
-lappend alis [$p get name]
-set a3 [$t get index]
-lappend angle3 $a3
-lappend angle3 "0"
-lappend angle $angle3
-lappend alis [$t get name]
-set ang [measure angle $angle]
-if {[expr abs([expr $ang - 90.0])] < $amx} {
-set amx [expr abs([expr $ang - 90.0])]
-set angl $ang
-set aa2 $i
-set leng [veclength [vecsub $d1 $d2]]
-}
+set d2 [measure center $m weight mass]
+set diff [vecsub $d1 $d2]
+foreach {x1 y1 z1} $diff {break}
+set xl $x1
+set yl $y1
+set zl $z1
+set leng1 [expr sqrt([expr pow($x1,2) + pow($y1,2)])]
+puts $i
+puts $leng1
+if {[expr $leng1 < $leng]} {
+set leng $leng1
+set aa2 $i }
 }
 
 set exist [info exists aa2]
@@ -143,7 +145,6 @@ exit
 puts ""
 puts "anchor 2 is" 
 puts $aa2
-puts $angl 
 puts $leng
 puts ""
 
@@ -249,22 +250,7 @@ set fileId [open $filename "w"]
 puts -nonewline $fileId $data
 close $fileId
 
-set a [atomselect 0 "resid H1A and name NN1"]
-set b [atomselect 0 "resname MMM and name $aa1"]
-set c [atomselect 0 all]
-set d1 [measure center $a weight mass]
-set d2 [measure center $b weight mass]
-set diff [vecsub $d1 $d2]
-set d [veclength $diff]
-foreach {x1 y1 z1} $diff {break}
-set x $x1
-set y $y1
-set z $z1
-$c move [transvecinv "$x $y $z"]
-$c move [transaxis y 90]
-$c moveby [vecinvert [measure center $c weight mass]]
-
-set a [atomselect 0 "resid FIRST to LAST and not water and not resname MMM and noh"]
+set a [atomselect 0 "resid FIRST to LAST and noh"]
 set b [atomselect 0 "resname MMM and noh"]
 set c [atomselect 1 all]
 $c moveby [vecsub [measure center $a weight mass] [measure center $c weight mass]]
