@@ -12,21 +12,21 @@ To use GHOAT.py, download the files from this repository, which already contain 
 
 VMD (Visual Molecular Dynamics) [2] - https://www.ks.uiuc.edu/Development/Download/download.cgi?PackageName=VMD
 
-Openbabel 2.4.1 [3] - https://github.com/openbabel/openbabel/releases/tag/openbabel-2-4-1 *
+Orient plugin from VMD: https://www.ks.uiuc.edu/Research/vmd/script_library/scripts/orient/ &dagger;
 
-AmberTools20 or later [4] - http://ambermd.org/AmberTools.php
+AmberTools20 or later [3] - http://ambermd.org/AmberTools.php
 
-_pmemd.cuda_ software from AMBER20 [4] - http://ambermd.org/GetAmber.php
+_pmemd.cuda_ software from AMBER20 [3] - http://ambermd.org/GetAmber.php
 
-\* Openbabel is not needed if host and guest charge parameters are already provided. 
+&dagger; More info about this plugin can be found in the User Guide
 
-The folder ./GHOAT/structures contains complex structure files for eight guests that bind to the CB7 host, taken directly from the proposed benchmark sets for free energy calculations, available at https://github.com/MobleyLab/benchmarksets [5]. This repository offers input structures and parameters for several guest-host systems, in order to test different binding free energy methods. Since the coordinate files from [5] are in .rst7 format, and GHOAT uses a pdb input, all that is needed is to convert them to pdb files using cpptraj. This can be done inside the ./GHOAT/structures/prmtop-rst7 folder, using the command (for guest-1):
+The folder ./GHOAT/structures contains complex structure pdb files for eight guests that bind to the CB7 host, taken directly from the proposed benchmark sets for free energy calculations, available at https://github.com/MobleyLab/benchmarksets [4]. This repository offers input structures and parameters for several guest-host systems, in order to test different binding free energy methods. The coordinate files from [4] are in .rst7 format, and are converted to pdb format using cpptraj from Ambertools. This can be done inside the ./GHOAT/structures/prmtop-rst7 folder, using the command (for guest-1):
 
 cpptraj -p cb7-1.prmtop -y cb7-1.rst7 -x host-cb7-guest-1.pdb > cpptraj.log
  
-The resulting pdb file should be named according to the host and guest chosen names, as [hostname]-[guestname].pdb. In the present example the pdb complex files are named host-cb7-guest-1.pdb and host-cb7-guest-23.pdb, and they should be placed inside the ./GHOAT/structures/ folder. Other guest-host structures can be downloaded from the benchmark repository in [5], and with the same procedure shown here can be evaluated with GHOAT.py in a fully automated way.  
+The resulting pdb file is now placed inside the ./GHOAT/structures folder, named according to the host and guest chosen names as [hostname]-[guestname].pdb. In the present example the pdb complex files are named host-cb7-guest-1.pdb and host-cb7-guest-23.pdb. Other guest-host structures can be downloaded from the benchmark repository in [4], and with the same procedure shown here can be evaluated with GHOAT.py in a fully automated way.  
 
-The guest and host partial charges were also taken from the benchmark set (calculated using RESP [6]), and can be found in the ./GHOAT/parameters folder. In order for the program to recognize them, they should be in the form of mol2 files with the same naming as in the structure file, in our case they are the host-cb7.mol2, guest-1.mol2 and guest-23.mol2 files. If charged parameters are not available, GHOAT is able to generate them automatically using the AM1-BCC charge model [7], as explained in the user guide.  
+The guest and host partial charges were also taken from the benchmark set (calculated using RESP [5]), and can be found in the ./GHOAT/parameters folder. In order for the program to recognize them, they should be in the form of mol2 files with the same naming as in the structure file, in our case they are the host-cb7.mol2, guest-1.mol2 and guest-23.mol2 files. If charged parameters are not available, GHOAT is able to generate them automatically using the AM1-BCC charge model [6], as explained in the user guide.  
 
 # Running a sample calculation
 
@@ -34,7 +34,7 @@ The simulations and analysis from this example will be performed inside the ./GH
 
 ## Equilibration
 
-The equilibration step starts from the guest-host initial complex structure, gradually releasing restraints applied on the guest relative to the host, and then performing a final simulation with an unrestrained guest. The necessary bonded parameters for the guest are also generated in this stage, using the General Amber Force Field versions 1 or 2 (GAFF or GAFF2) [8]. To run this step, inside the ./GHOAT/ folder type:
+The equilibration step starts from the guest-host initial complex structure, gradually releasing restraints applied on the guest relative to the host, and then performing a final simulation with an unrestrained guest. The necessary Lennard-Jones (LJ) and bonded parameters are also generated in this stage, using the General Amber Force Field versions 1 or 2 (GAFF or GAFF2) [7]. To run this step, inside the ./GHOAT/ folder type:
 
 python GHOAT.py -i input.in -s equil
 
@@ -42,13 +42,13 @@ GHOAT.py is compatible with python 3.8 versions. If you have another version, or
 
 $AMBERHOME/miniconda/bin/python GHOAT.py -i input.in -s equil
 
-This command will create an ./equil folder, with one folder inside for each of the guests. In order to run the simulations for each guest, you can use the run-local.bash script (to run them locally), or the PBS-run script, which is designed to run in a queue system such as TORQUE. Both of these files might have to be adjusted, depending on your computer or server configuration. The number of simulations and the applied restraints will depend on the _release_eq_ array defined in the input file. 
+This command will create an ./equil folder, with one folder inside for each of the guests. In order to run the simulations for each guest, you can use the run-local.bash script (to run them locally), or the PBS-run script, which is designed to run in a queue system such as TORQUE. Both of these files might have to be adjusted, depending on your computer or server configuration. The number of simulations and the applied restraints will depend on the *release_eq* array defined in the input file. 
 
 ## Free energy calculation 
 
 ### Simulations
 
-Starting from the states created in the equil stage, we can now perform the binding free energy calculations, which will be located inside the ./fe folder, using the simultaneous decoupling and recoupling (SDR) method. Again in the ./GHOAT/ folder, type:
+Starting from the states created in the equil stage, we can now perform the binding free energy calculations, using the simultaneous decoupling and recoupling (SDR) method with restraints. These simulations will be located inside the ./fe folder. Again in the ./GHOAT/ folder, type:
 
 python GHOAT.py -i input.in -s fe
 
@@ -56,7 +56,7 @@ For each guest, a folder will be created inside ./fe, and inside there will be t
 
 ### Analysis
 
-Once all of the simulations are concluded, it is time to process the output files and obtain the binding free energies. Here a few parameters concerning the analysis can be set in the input file, such as using TI or MBAR [9] for decoupling/recoupling, number of blocks for block data analysis, and the Gaussian weights if TI is used for the SDR step. Inside the ./GHOAT/ folder type:
+Once all of the simulations are concluded, it is time to process the output files and obtain the binding free energies. Here a few parameters concerning the analysis can be set in the input file, such as using TI or MBAR [8] for decoupling/recoupling, number of blocks for block data analysis, and the Gaussian weights if TI is used for the SDR step. Inside the ./GHOAT/ folder type:
 
 python GHOAT.py -i input.in -s analysis
 
@@ -64,7 +64,7 @@ You should see a ./Results directory inside each ./fe/guest folder, with all of 
 
 ## Additional hosts
 
-To include a new host system, some additional input data is needed. They include three chosen host anchors for the application of restraints, and possibly a few additional variables for guest anchor atom search. These can be found inside the ./host-library folder, with new hosts being added and validated with time.    
+To include a new host system, some additional input data is needed. They include three chosen host anchors for the application of restraints, and possibly a few additional variables. These can be found inside the ./host-library folder, with new hosts being added and validated with time.    
 
 # More information
 
@@ -85,18 +85,17 @@ Germano Heinzelmann thanks FAPESC and CNPq for the research grants.
 
 2. W. Humphrey, A. Dalke and K. Schulten. (1996)  "VMD - Visual Molecular Dynamics", Journal of Molecular Graphics, 14, 33-38.
 
-3. N. M. O'Boyle, M. Banck, C. A. James, C. Morley, T. Vandermeersch, and G. R. HutchisonEmail. (2011) "Open Babel: An open chemical toolbox." Journal of Cheminformatics, 3, 33.
 
-4. D.A. Case, K. Belfon, I.Y. Ben-Shalom, S.R. Brozell, D.S. Cerutti, T.E. Cheatham, III, V.W.D. Cruzeiro, T.A. Darden, R.E. Duke, G. Giambasu, M.K. Gilson, H. Gohlke, A.W. Goetz, R. Harris, S. Izadi, S.A. Izmailov, K. Kasavajhala, A. Kovalenko, R. Krasny, T. Kurtzman, T.S. Lee, S. LeGrand, P. Li, C. Lin, J. Liu, T. Luchko, R. Luo, V. Man, K.M. Merz, Y. Miao, O. Mikhailovskii, G. Monard, H. Nguyen, A. Onufriev, F.Pan, S. Pantano, R. Qi, D.R. Roe, A. Roitberg, C. Sagui, S. Schott-Verdugo, J. Shen, C. Simmerling, N.R.Skrynnikov, J. Smith, J. Swails, R.C. Walker, J. Wang, L. Wilson, R.M. Wolf, X. Wu, Y. Xiong, Y. Xue, D.M. York and P.A. Kollman (2020), AMBER 2020, University of California, San Francisco.
+3. D.A. Case, K. Belfon, I.Y. Ben-Shalom, S.R. Brozell, D.S. Cerutti, T.E. Cheatham, III, V.W.D. Cruzeiro, T.A. Darden, R.E. Duke, G. Giambasu, M.K. Gilson, H. Gohlke, A.W. Goetz, R. Harris, S. Izadi, S.A. Izmailov, K. Kasavajhala, A. Kovalenko, R. Krasny, T. Kurtzman, T.S. Lee, S. LeGrand, P. Li, C. Lin, J. Liu, T. Luchko, R. Luo, V. Man, K.M. Merz, Y. Miao, O. Mikhailovskii, G. Monard, H. Nguyen, A. Onufriev, F.Pan, S. Pantano, R. Qi, D.R. Roe, A. Roitberg, C. Sagui, S. Schott-Verdugo, J. Shen, C. Simmerling, N.R.Skrynnikov, J. Smith, J. Swails, R.C. Walker, J. Wang, L. Wilson, R.M. Wolf, X. Wu, Y. Xiong, Y. Xue, D.M. York and P.A. Kollman (2020), AMBER 2020, University of California, San Francisco.
 
-5. D.L. Mobley, G. Heinzelmann, N.M. Henriksen, and M.K. Gilson. "Predicting binding free energies: Frontiers and benchmarks (a perpetual review)" - https://escholarship.org/uc/item/9p37m6bq.
+4. D.L. Mobley, G. Heinzelmann, N.M. Henriksen, and M.K. Gilson. "Predicting binding free energies: Frontiers and benchmarks (a perpetual review)" - https://escholarship.org/uc/item/9p37m6bq.
 
-6. W.D. Cornell, P. Cieplak, C.I. Bayly, and P.A. Kollman. "Application of RESP charges to calculate conformational energies, hydrogen bond energies, and free energies of solvation". Journal of the American Chemical Society, 115, 9620-9631.
+5. W.D. Cornell, P. Cieplak, C.I. Bayly, and P.A. Kollman. "Application of RESP charges to calculate conformational energies, hydrogen bond energies, and free energies of solvation". Journal of the American Chemical Society, 115, 9620-9631.
 
-7. A. Jakalian, B.L. Bush, D.B. Jack, and C.I. Bayly (2000) "Fast, efficient generation of high‐quality atomic charges. AM1‐BCC model: I. Method". Journal of Computational Chemistry, 21, 132-146.
+6. A. Jakalian, B.L. Bush, D.B. Jack, and C.I. Bayly (2000) "Fast, efficient generation of high‐quality atomic charges. AM1‐BCC model: I. Method". Journal of Computational Chemistry, 21, 132-146.
 
-8. J. Wang, R.M. Wolf, J.W. Caldwell, and P. A. Kollman, D. A. Case (2004) "Development and testing of a general AMBER force field". Journal of Computational Chemistry, 25, 1157-1174.
+7. J. Wang, R.M. Wolf, J.W. Caldwell, and P. A. Kollman, D. A. Case (2004) "Development and testing of a general AMBER force field". Journal of Computational Chemistry, 25, 1157-1174.
 
-9. M. R. Shirts and J. Chodera (2008) “Statistically optimal analysis of samples from multiple equilibrium states.” Journal of  Chemical Physics, 129, 129105.
+8. M. R. Shirts and J. Chodera (2008) “Statistically optimal analysis of samples from multiple equilibrium states.” Journal of  Chemical Physics, 129, 129105.
 
 
