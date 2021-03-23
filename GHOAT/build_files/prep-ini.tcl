@@ -26,6 +26,7 @@ set lengmax 100
 set ran RANG
 set dmax DMAX
 set dmin DMIN
+set sdr_dist SDRD
 set mat {}
 set amx 90
 
@@ -255,11 +256,13 @@ set b [atomselect 0 "resname MMM and noh"]
 set c [atomselect 1 all]
 $c moveby [vecsub [measure center $a weight mass] [measure center $c weight mass]]
 $c writepdb dum1.pdb
-$b moveby {0 0 30}
+set dlis [list 0 0 [expr $sdr_dist]]
+$b moveby $dlis
 $c moveby [vecsub [measure center $b weight mass] [measure center $c weight mass]]
 $c set resid 2
 $c writepdb dum2.pdb
-$b moveby {0 0 -30}
+set dlis2 [list 0 0 [expr -1*$sdr_dist]]
+$b moveby $dlis2
 
 set all [atomselect 0 all]
 $all writepdb hhhh-gggg-aligned.pdb

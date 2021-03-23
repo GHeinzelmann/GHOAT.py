@@ -9,7 +9,7 @@ import subprocess as sp
 import sys as sys
 from lib import scripts 
 
-def build_equil(guest, host, mol, H1, H2, H3, min_adis, max_adis, l1_range, amber_ff, final_host_num, guest_charge):
+def build_equil(guest, host, mol, H1, H2, H3, min_adis, max_adis, l1_range, amber_ff, final_host_num, guest_charge, sdr_dist):
 
 
     # Create equilibrium directory
@@ -54,7 +54,7 @@ def build_equil(guest, host, mol, H1, H2, H3, min_adis, max_adis, l1_range, ambe
     with open("prep-ini.tcl", "rt") as fin:
       with open("prep.tcl", "wt") as fout:
         for line in fin:
-          fout.write(line.replace('hhhh', host.lower()).replace('gggg', guest.lower()).replace('MMM', mol).replace('NN1', h1_atom).replace('H1A', h1_resid).replace('NN2', h2_atom).replace('H2A', h2_resid).replace('NN3', h3_atom).replace('H3A', h3_resid).replace('FIRST','1').replace('LAST', str(final_host_num)).replace('STAGE','equil').replace('DMAX','%4.2f' %max_adis).replace('DMIN','%4.2f' %min_adis).replace('RANG','%4.2f' %l1_range))
+          fout.write(line.replace('hhhh', host.lower()).replace('gggg', guest.lower()).replace('MMM', mol).replace('NN1', h1_atom).replace('H1A', h1_resid).replace('NN2', h2_atom).replace('H2A', h2_resid).replace('NN3', h3_atom).replace('H3A', h3_resid).replace('FIRST','1').replace('LAST', str(final_host_num)).replace('STAGE','equil').replace('DMAX','%4.2f' %max_adis).replace('DMIN','%4.2f' %min_adis).replace('RANG','%4.2f' %l1_range).replace('SDRD', str(sdr_dist)))
 
     # Get parameters for host
     shutil.copy('../../parameters/%s.mol2' %(host.lower()), './')  # AM1-BCC charges problematic for cyclic hosts, using provided charges only
@@ -211,7 +211,7 @@ def build_equil(guest, host, mol, H1, H2, H3, min_adis, max_adis, l1_range, ambe
     return 'all'
 
     
-def build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt):
+def build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt, sdr_dist):
 
 
     # Get files or finding new anchors and building some systems
@@ -244,7 +244,7 @@ def build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, h
       with open("prep-ini.tcl", "rt") as fin:
         with open("prep.tcl", "wt") as fout:
           for line in fin:
-            fout.write(line.replace('hhhh', host.lower()).replace('gggg', guest.lower()).replace('MMM', mol).replace('NN1', h1_atom).replace('H1A', str(int(h1_resid)+1)).replace('NN2', h2_atom).replace('H2A', str(int(h2_resid)+1)).replace('NN3', h3_atom).replace('H3A', str(int(h3_resid)+1)).replace('FIRST','2').replace('LAST', str(int(final_host_num)+1)).replace('STAGE','equil').replace('DMAX','%4.2f' %max_adis).replace('DMIN','%4.2f' %min_adis).replace('RANG','%4.2f' %l1_range))
+            fout.write(line.replace('hhhh', host.lower()).replace('gggg', guest.lower()).replace('MMM', mol).replace('NN1', h1_atom).replace('H1A', str(int(h1_resid)+1)).replace('NN2', h2_atom).replace('H2A', str(int(h2_resid)+1)).replace('NN3', h3_atom).replace('H3A', str(int(h3_resid)+1)).replace('FIRST','2').replace('LAST', str(int(final_host_num)+1)).replace('STAGE','equil').replace('DMAX','%4.2f' %max_adis).replace('DMIN','%4.2f' %min_adis).replace('RANG','%4.2f' %l1_range).replace('SDRD', str(sdr_dist)))
       with open("separate-ini.tcl", "rt") as fin:
         with open("separate.tcl", "wt") as fout:
           for line in fin:
@@ -421,7 +421,7 @@ def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, ho
       with open("prep-ini.tcl", "rt") as fin:
         with open("prep.tcl", "wt") as fout:
           for line in fin:
-            fout.write(line.replace('hhhh', host.lower()).replace('gggg', guest.lower()).replace('MMM', mol).replace('NN1', h1_atom).replace('H1A', str(int(h1_resid)+1)).replace('NN2', h2_atom).replace('H2A', str(int(h2_resid)+1)).replace('NN3', h3_atom).replace('H3A', str(int(h3_resid)+1)).replace('FIRST','2').replace('LAST', str(int(final_host_num)+1)).replace('STAGE','equil').replace('DMAX','%4.2f' %max_adis).replace('DMIN','%4.2f' %min_adis).replace('RANG','%4.2f' %l1_range))
+            fout.write(line.replace('hhhh', host.lower()).replace('gggg', guest.lower()).replace('MMM', mol).replace('NN1', h1_atom).replace('H1A', str(int(h1_resid)+1)).replace('NN2', h2_atom).replace('H2A', str(int(h2_resid)+1)).replace('NN3', h3_atom).replace('H3A', str(int(h3_resid)+1)).replace('FIRST','2').replace('LAST', str(int(final_host_num)+1)).replace('STAGE','equil').replace('DMAX','%4.2f' %max_adis).replace('DMIN','%4.2f' %min_adis).replace('RANG','%4.2f' %l1_range).replace('SDRD', str(sdr_dist)))
       with open("separate-ini.tcl", "rt") as fin:
         with open("separate.tcl", "wt") as fout:
           for line in fin:
