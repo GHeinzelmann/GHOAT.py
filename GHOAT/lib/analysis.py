@@ -59,7 +59,7 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
                 data.append(line)
           for k in range(0, blocks):
             fout = open('rest%02d.dat' % (k+1), "w")
-            for t in range(k*int(round(len(data)/blocks)), (k+1)*int(round(len(data)/blocks))):
+            for t in range(k*int(round(len(data)//blocks)), (k+1)*int(round(len(data)//blocks))):
               fout.write(data[t])
             fout.close()
           os.chdir('../')
