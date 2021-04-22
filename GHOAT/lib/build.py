@@ -374,6 +374,8 @@ def build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, h
         # Get files and parameters for building
         shutil.copy('../../build_files/'+guest+'.pdb', './')
         shutil.copy('../../build_files/'+host+'.pdb', './')
+        shutil.copy('../../build_files/vac_host.prmtop', './')
+        shutil.copy('../../build_files/vac_host.pdb', './')
         shutil.copy('../../build_files/'+host+'.pdb', './build.pdb')
         shutil.copy('../../build_files/'+host+'-'+guest+'.pdb', './')
         shutil.copy('../../build_files/anchors-'+guest+'.txt', './')
@@ -509,6 +511,7 @@ def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, ho
     if int(win) == 0:
       for file in glob.glob('../../build_files/vac*'):
         shutil.copy(file, './')
+      shutil.copy('../../build_files/'+host+'.pdb', './')
       shutil.copy('../../build_files/'+guest+'.pdb', './')
       shutil.copy('../../build_files/'+host+'-'+guest+'.pdb', './')
       shutil.copy('../../build_files/'+host+'-'+guest+'-aligned.pdb', './build-ini.pdb')
@@ -643,10 +646,10 @@ def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, ho
         shutil.copy(file, './')
 
 
-def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_def, neut, buffer_x, buffer_y, stage, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt):
+def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_def, neut, buffer_x, buffer_y, stage, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt, final_host_num):
     
     # Copy and replace simulation files
-    if stage != 'fe':
+    if stage == 'equil':
       if os.path.exists('amber_files'):
         shutil.rmtree('./amber_files')
       try:
@@ -667,6 +670,63 @@ def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_d
             f.write(s)
       os.chdir(guest)
 
+    # Copy any additional parameters and bonds
+    if stage == 'equil':
+      for file in glob.glob('../../parameters/*.dat'):
+        shutil.copy(file, './')
+      if os.path.exists('../../parameters/host_bonds'):
+        shutil.copy('../../parameters/host_bonds', './')
+    else:
+      for file in glob.glob('../../../../parameters/*.dat'):
+        shutil.copy(file, './')
+      if os.path.exists('../../../../parameters/host_bonds'):
+        shutil.copy('../../../../parameters/host_bonds', './')
+
+
+    # Configure bonds
+  
+    host_bonds = []
+    host_bonds1 = []
+    if os.path.exists('./host_bonds'):
+      with open('./host_bonds') as fin:
+        lines = (line.rstrip() for line in fin)
+        lines = list(line for line in lines if line) # Non-blank lines in a list   
+        host_bonds = list(lines)
+        for i in range(0, len(lines)):
+          data = lines[i].split()
+          for j in range(1, len(data)):
+            for k in range(0, final_host_num):
+              num_r = int(data[j].split('.')[1])
+              if num_r == k+1:
+                p = k+1
+                n = k+2
+                data[j] = data[j].replace('model.'+str(p),'model.'+str(n))
+                break
+          lines[i] = '%s %s %s' %(data[0], data[1], data[2])
+        host_bonds1 = list(lines)   
+
+    if (comp == 'e' or comp == 'v'):
+      host_bonds = []
+      host_bonds2 = []
+      if os.path.exists('./host_bonds'):
+        with open('./host_bonds') as fin:
+          lines = (line.rstrip() for line in fin)
+          lines = list(line for line in lines if line) # Non-blank lines in a list   
+          host_bonds = list(lines)
+          for i in range(0, len(lines)):
+            data = lines[i].split()
+            for j in range(1, len(data)):
+              for k in range(0, final_host_num):
+                num_r = int(data[j].split('.')[1])
+                if num_r == k+1:
+                  p = k+1
+                  n = k+3
+                  data[j] = data[j].replace('model.'+str(p),'model.'+str(n))
+                  break
+            lines[i] = '%s %s %s' %(data[0], data[1], data[2])
+          host_bonds2 = list(lines)   
+
+
     # Copy tleap files that are used for restraint generation and analysis
     shutil.copy('../amber_files/tleap.in.amber16', 'tleap_vac.in')
     shutil.copy('../amber_files/tleap.in.amber16', 'tleap_vac_guest.in')
@@ -686,11 +746,24 @@ def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_d
     tleap_vac.write('loadamberparams %s.frcmod\n'%(host.lower()))
     tleap_vac.write('%s = loadmol2 %s.mol2\n\n'%(hmol.upper(), host.lower()))
     tleap_vac.write('model = loadpdb build.pdb\n\n')
+    # Add bonds
+    if (comp == 'r' or comp == 'q'):
+      if len(host_bonds1) > 0:  
+        for i in host_bonds1:
+          tleap_vac.write('%s\n' % i)        
+    elif (comp == 'v' or comp == 'e'):
+      if len(host_bonds2) > 0:  
+        for i in host_bonds2:
+          tleap_vac.write('%s\n' % i)        
+    tleap_vac.write('\n')
     tleap_vac.write('check model\n')
     tleap_vac.write('savepdb model vac.pdb\n')
     tleap_vac.write('saveamberparm model vac.prmtop vac.inpcrd\n')
     tleap_vac.write('quit\n')
     tleap_vac.close()
+
+    # Generate complex in vacuum
+    p = sp.call('tleap -s -f tleap_vac.in > tleap_vac.log', shell=True)
 
     # Append tleap file for guest only
     tleap_vac_ligand = open('tleap_vac_guest.in', 'a')
@@ -703,26 +776,32 @@ def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_d
     tleap_vac_ligand.write('saveamberparm model vac_guest.prmtop vac_guest.inpcrd\n')
     tleap_vac_ligand.write('quit\n')
     tleap_vac_ligand.close()
-
-    # Append tleap file for host only
-    tleap_vac_ligand = open('tleap_vac_host.in', 'a')
-    tleap_vac_ligand.write('# Load the host parameters\n')        
-    tleap_vac_ligand.write('loadamberparams %s.frcmod\n'%(host.lower()))
-    tleap_vac_ligand.write('%s = loadmol2 %s.mol2\n\n'%(hmol.upper(), host.lower()))
-    tleap_vac_ligand.write('model = loadpdb %s.pdb\n\n' %(host.lower()))
-    tleap_vac_ligand.write('check model\n')
-    tleap_vac_ligand.write('savepdb model vac_host.pdb\n')
-    tleap_vac_ligand.write('saveamberparm model vac_host.prmtop vac_host.inpcrd\n')
-    tleap_vac_ligand.write('quit\n')
-    tleap_vac_ligand.close()
-
-
-    # Generate complex in vacuum
-    p = sp.call('tleap -s -f tleap_vac.in > tleap_vac.log', shell=True)
-
-    # Generate individual structures in vacuum
+      
+    # Generate guest structure in vacuum
     p = sp.call('tleap -s -f tleap_vac_guest.in > tleap_vac_guest.log', shell=True)
-    p = sp.call('tleap -s -f tleap_vac_host.in > tleap_vac_host.log', shell=True)
+
+
+    if stage == 'equil':
+
+      # Append tleap file for host only
+      tleap_vac_ligand = open('tleap_vac_host.in', 'a')
+      tleap_vac_ligand.write('# Load the host parameters\n')        
+      tleap_vac_ligand.write('loadamberparams %s.frcmod\n'%(host.lower()))
+      tleap_vac_ligand.write('%s = loadmol2 %s.mol2\n\n'%(hmol.upper(), host.lower()))
+      tleap_vac_ligand.write('model = loadpdb %s.pdb\n\n' %(host.lower()))
+      # Add bonds
+      if len(host_bonds) > 0:  
+        for i in host_bonds:
+          tleap_vac_ligand.write('%s\n' % i)        
+      tleap_vac_ligand.write('\n')
+      tleap_vac_ligand.write('check model\n')
+      tleap_vac_ligand.write('savepdb model vac_host.pdb\n')
+      tleap_vac_ligand.write('saveamberparm model vac_host.prmtop vac_host.inpcrd\n')
+      tleap_vac_ligand.write('quit\n')
+      tleap_vac_ligand.close()
+
+      # Generate host structure in vacuum
+      p = sp.call('tleap -s -f tleap_vac_host.in > tleap_vac_host.log', shell=True)
 
     # Find out how many cations/anions are needed for neutralization
     neu_cat = 0
@@ -849,6 +928,16 @@ def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_d
     tleap_solvate.write('loadamberparams %s.frcmod\n'%(host.lower()))
     tleap_solvate.write('%s = loadmol2 %s.mol2\n\n'%(hmol.upper(), host.lower()))
     tleap_solvate.write('model = loadpdb build.pdb\n\n')
+    # Add bonds
+    if (comp == 'r' or comp == 'q'):
+      if len(host_bonds1) > 0:  
+        for i in host_bonds1:
+          tleap_solvate.write('%s\n' % i)        
+    elif (comp == 'v' or comp == 'e'):
+      if len(host_bonds2) > 0:  
+        for i in host_bonds2:
+          tleap_solvate.write('%s\n' % i)        
+    tleap_solvate.write('\n')
     tleap_solvate.write('# Load the water and jc ion parameters\n')        
     tleap_solvate.write('source leaprc.water.%s\n'%(water_model.lower()))
     tleap_solvate.write('loadamberparams frcmod.ionsjc_%s\n\n'%(water_model.lower()))

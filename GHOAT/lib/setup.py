@@ -74,7 +74,7 @@ def restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, we
         lines = list(line for line in lines if line) # Non-blank lines in a list   
         for i in range(0, len(lines)):
           if (lines[i][0:6].strip() == 'ATOM') or (lines[i][0:6].strip() == 'HETATM'):
-            if lines[i][22:26].strip() == p1_resid:
+            if int(lines[i][22:26].strip()) >= 2 and int(lines[i][22:26].strip()) <= final_host_num+1:
               data = lines[i][12:16].strip()
               if data[0] != 'H':
                 hvy_h.append(lines[i][6:11].strip()) 
@@ -100,10 +100,11 @@ def restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, we
           lines = (line.rstrip() for line in f_in)
           lines = list(line for line in lines if line) # Non-blank lines in a list   
           for i in range(0, len(lines)):
-            if lines[i][22:26].strip() == p1_resid:
-              data = lines[i][12:16].strip()
-              if data[0] != 'H':
-                hvy_h.append(lines[i][6:11].strip()) 
+            if (lines[i][0:6].strip() == 'ATOM') or (lines[i][0:6].strip() == 'HETATM'):
+              if int(lines[i][22:26].strip()) >= 3 and int(lines[i][22:26].strip()) <= final_host_num+2:
+                data = lines[i][12:16].strip()
+                if data[0] != 'H':
+                  hvy_h.append(lines[i][6:11].strip()) 
 
         # Get bulk guest heavy atoms
         with open('./full.pdb') as f_in:
@@ -111,16 +112,18 @@ def restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, we
           lines = list(line for line in lines if line) # Non-blank lines in a list   
           if comp == 'e':
             for i in range(0, len(lines)):
-              if lines[i][22:26].strip() == str(int(lig_res) + 2):
-                data = lines[i][12:16].strip()
-                if data[0] != 'H':
-                  hvy_g.append(lines[i][6:11].strip()) 
+              if (lines[i][0:6].strip() == 'ATOM') or (lines[i][0:6].strip() == 'HETATM'):
+                if lines[i][22:26].strip() == str(int(lig_res) + 2):
+                  data = lines[i][12:16].strip()
+                  if data[0] != 'H':
+                    hvy_g.append(lines[i][6:11].strip()) 
           if comp == 'v':
             for i in range(0, len(lines)):
-              if lines[i][22:26].strip() == str(int(lig_res) + 1):
-                data = lines[i][12:16].strip()
-                if data[0] != 'H':
-                  hvy_g.append(lines[i][6:11].strip()) 
+              if (lines[i][0:6].strip() == 'ATOM') or (lines[i][0:6].strip() == 'HETATM'):
+                if lines[i][22:26].strip() == str(int(lig_res) + 1):
+                  data = lines[i][12:16].strip()
+                  if data[0] != 'H':
+                    hvy_g.append(lines[i][6:11].strip()) 
 
     # Adjust anchors for ligand only
     if (comp == 'c'):
@@ -198,12 +201,40 @@ def restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, we
       for i in range(0, len(mat)):
         msk[mat[i]]= ''
 
-      if (comp != 'c' and comp != 'r'):
-        msk = filter(None, msk)
-        msk = [m.replace(':1',':'+p1_resid) for m in msk]
-      else:
-        msk = filter(None, msk) 
-        msk = [m.replace(':1',':1') for m in msk]
+      if (comp == 'a' or comp == 'l' or comp == 't' or comp == 'q'):
+        msk = list(filter(None, msk))
+#        for m in msk:
+#          print (m)
+        mskt = list(msk)
+        for i in range(0, len(mskt)):
+          data = mskt[i].split()
+          for j in range(0, len(data)):
+            for k in range(0, final_host_num):
+              num = int(data[j].split()[0][1])
+              if num == k+1:
+                p = k+1
+                n = k+2
+                data[j] = data[j].replace(':'+str(p)+'',':'+str(n)+'')
+                break
+          mskt[i] = '%s %s %s %s' %(data[0], data[1], data[2], data[3])
+        msk = list(mskt)
+      elif (comp == 'e' or comp == 'v'):
+        msk = list(filter(None, msk))
+        mskt = list(msk)
+        for i in range(0, len(mskt)):
+          data = mskt[i].split()
+          for j in range(0, len(data)):
+            for k in range(0, final_host_num):
+              num = int(data[j].split()[0][1])
+              if num == k+1:
+                p = k+1
+                n = k+3
+                data[j] = data[j].replace(':'+str(p)+'',':'+str(n)+'')
+                break
+            mskt[i] = '%s %s %s %s' %(data[0], data[1], data[2], data[3])
+        msk = list(mskt)
+      else: # c or r
+        msk = list(filter(None, msk))
 
       for i in range(0, len(msk)):
         rst.append(msk[i])
