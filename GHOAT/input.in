@@ -21,7 +21,7 @@ H1 = :1@C15
 H2 = :1@C28
 H3 = :1@C40
 
-final_host_num = 1  # Automate this!
+final_host_num = 1  # Final residue number of the host. 1 is the default, larger values for hosts with multiple residues like CDs.
 
 # Variables for setting up equilibrium and free energy calculations, also used on analysis       
 
