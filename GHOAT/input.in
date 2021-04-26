@@ -45,7 +45,7 @@ dec_int = TI             # Integration method for double decoupling (MBAR or TI 
 
 blocks = 5               # Number of blocks for block data analysis
 
-sdr_dist = 30.00         # z distance between site and bulk molecules on DD
+sdr_dist = 30.00         # z distance between site and bulk molecules on SDR
 
 # Force constants
 

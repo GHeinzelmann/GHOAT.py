@@ -1,0 +1,21 @@
+#############################################################################################################
+####################### GHOAT parameters for the cucurbit[7]uril host (CB7) #################################
+#############################################################################################################
+
+host = host-cb7            # Host name 
+host_code = CB7            # Three letter residue name for host
+
+# Host anchors
+
+H1 = :1@C15
+H2 = :1@C28
+H3 = :1@C40
+
+sdr_dist = 30.00           # z distance between site and bulk molecules on SDR
+
+min_adis        = 1.50     # minimum distance between anchors
+max_adis        = 5.00     # maximum distance between anchors
+l1_range        = 3.50     # first anchor search range (diameter and height of cylinder)
+
+amber_ff = gaff            # Bonded and LJ force field for host and guest molecule
+
