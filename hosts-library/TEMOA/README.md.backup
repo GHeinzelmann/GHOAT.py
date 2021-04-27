@@ -1,4 +1,4 @@
-## Adding _tetra-endo-_methyl octa-acid (TEMOA) systems to the GHOAT workflow
+## Adding *tetra-endo-*methyl octa-acid (TEMOA) systems to the GHOAT workflow
 
 Here we show how to configure GHOAT.py for guest-host calculations on the TEMOA host, using the initial coordinates and parameters from the proposed benchmark sets at https://github.com/MobleyLab/benchmarksets [1].
 
