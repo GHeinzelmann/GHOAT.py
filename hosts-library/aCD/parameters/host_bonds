@@ -5,6 +5,3 @@ bond model.4.O1 model.5.C4
 bond model.5.O1 model.6.C4 
 bond model.6.O1 model.1.C4 
 
-
-
-
