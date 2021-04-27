@@ -1,0 +1,44 @@
+source leaprc._amber_ff_
+
+# Load the dummy atom parameters
+loadamberparams dum.frcmod
+DUM = loadmol2 dum.mol2                                    
+
+addAtomTypes {
+# Amber
+        {  HZ    H   sp3  }
+        {  H     H   sp3  }
+        {  HO    H   sp3  }
+        {  H1    H   sp3  }
+        {  H2    H   sp3  }
+        {  HC    H   sp3  }
+        {  HA    H   sp3  }
+        {  HW    H   sp3  }
+        {  OW    O   sp3  }
+        {  OH    O   sp3  }
+        {  OS    O   sp3  }
+        {  O     O   sp2  }
+        {  O2    O   sp2  }
+        {  S     S   sp3  }
+        {  CT    C   sp3  }
+        {  CZ    C   sp3  }
+        {  C     C   sp2  }
+        {  CA    C   sp2  }
+        {  N     N   sp2  }
+        {  CL   Cl   sp3  }
+# Glycam
+        {  CG    C   sp3  }
+}
+
+parm99 = loadamberparams parm99.dat
+FF99SB = loadamberparams frcmod.ff99SB
+loadoff all_amino94.lib
+loadoff all_aminoct94.lib
+loadoff all_aminont94.lib
+loadoff solvents.lib
+# Use Glycam
+glycam04 = loadamberparams glycam04.dat
+HOH = TP3
+WAT = TP3
+Q4MDCD = loadamberparams frcmod-q4md.dat
+

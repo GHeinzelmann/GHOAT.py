@@ -10,7 +10,7 @@ The .mol2 files for the CB7 host and its proposed guests will provide the partia
 
 *benchmarksets-master/input_files/cb7-set2/mol2*
 
-The host and guest mol2 files needed for the binding free energy calculations should be added to the *GHOAT/parameters* folder inside the GHOAT package.
+The host and guests mol2 files needed for the binding free energy calculations should be added to the *GHOAT/parameters* folder inside the GHOAT package.
 
 ### Initial structures
 
@@ -20,7 +20,7 @@ The needed structure (or restart) files can be found inside the folders:
 
 *benchmarksets-master/input_files/cb7-set2/prmtop-rst7*
 
-To generate the complex structure file for each guest bound to the CB7 host, the *cpptraj* program from Ambertools can be used. After making sure *cpptraj* is in your path (running amber.sh), type inside the prmtop-rst7 folders above:
+To generate the complex structure file for each guest bound to the CB7 host, the *cpptraj* program from Ambertools can be used. Type, inside the prmtop-rst7 folders above:
 
 cpptraj -p cb7-1.prmtop -y cb7-1.rst7 -x host-cb7-guest-1.pdb > cpptraj.log
 
