@@ -869,7 +869,10 @@ def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_d
     # Number of cations and anions   
     num_cat = ion_def[2]
     num_ani = ion_def[2] - neu_cat + neu_ani
-    
+    # If there are not enough chosen cations to neutralize the system
+    if num_ani < 0:
+      num_cat = neu_cat  
+      num_ani = 0 
 
     # Create the first box guess to get the initial number of waters and cross sectional area
     buff = 50.0  
@@ -910,7 +913,7 @@ def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_d
         buff_diff = res_diff/(ratio*cross_area)
         buff -= (buff_diff * factor)
         if buff < 0:
-           print ('Not enough water molecules to fill the system in the z direction, please increase the number of water molecules')
+           print ('Not enough water molecules to fill the system in the z direction, please increase the number of water molecules or reduce the x and y buffers')
            sys.exit(1)
         # Set relaxation factor  
         factor = ind * factor

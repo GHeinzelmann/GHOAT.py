@@ -7,13 +7,13 @@
 # Calculation definitions
 
 host = host-cb7                      # Choose host name
-guest_list = [guest-1,guest-3]       # Choose list of guest names
+guest_list = [guest-1,guest-3,guest-5]       # Choose list of guest names
 
 # Guest residue name
 
 host_code           = CB7         # Three letter residue name for host
-guest_list_code     = [MOL,MOL]   # Three letter residue names for guests (in the same order as the guest_list array)
-#guest_list_charge     = [1,2]    # Net charges for guests (in the same order as the guest_list array)
+guest_list_code     = [MOL,MOL,MOL]   # Three letter residue names for guests (in the same order as the guest_list array)
+#guest_list_charge     = [1,2,2]    # Net charges for guests (in the same order as the guest_list array)
 
 # Host anchors 
 
@@ -63,8 +63,8 @@ lig_com_force        =  10.0  # Guest COM spring constant for simultaneous decou
 
 water_model     = TIP3P   # Water model (SPCE, TIP4PEW or TIP3P)
 num_waters      = 3000    # Number of waters in the system
-buffer_x        = 12      # Box solvation buffer in the x axis
-buffer_y        = 12      # Box solvation buffer in the y axis 
+buffer_x        = 10      # Box solvation buffer in the x axis
+buffer_y        = 10      # Box solvation buffer in the y axis 
 lig_buffer      = 14      # Buffer size for the three axes of the ligand-only box
 
 # Counterions 
