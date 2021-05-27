@@ -1,9 +1,9 @@
 #############################################################################################################
-######################### GHOAT parameters for the beta-cyclodextrin (bCD) #################################
+####################################### GHOAT parameters for the bCD host ###################################
 #############################################################################################################
 
-host = host-bcd            # Host name 
-host_code = MGO            # Three letter residue name for host
+host = host-bcd              # Host name 
+host_code = MGO              # Three letter residue name for host
 
 # Host anchors
 
@@ -11,13 +11,17 @@ H1 = :1@C4
 H2 = :3@C4
 H3 = :6@C4
 
-final_host_num = 7         # Number of host residues (final resiue number of the host)
+final_host_num = 7           # Number of host residues (final resiue number of the host)
 
-sdr_dist = 30.00           # z distance between site and bulk molecules on SDR
+sdr_dist = 30.00             # z distance between site and bulk molecules on SDR
 
-min_adis        = 1.50     # minimum distance between anchors
-max_adis        = 5.00     # maximum distance between anchors
-l1_range        = 3.50     # first anchor search range (diameter and height of cylinder)
+min_adis        = 1.50       # minimum distance between anchors
+max_adis        = 5.00       # maximum distance between anchors
+l1_range        = 3.50       # first anchor search range (diameter and height of cylinder)
 
-amber_ff = gaff            # Bonded and LJ force field for host and guest molecule
+guest_rot = yes              # Allow guest rotation during decoupling
+
+host_rest_type  = distances  # Use only anchor distance restraints for host
+
+amber_ff = gaff              # Bonded and LJ force field for host and guest molecule
 
