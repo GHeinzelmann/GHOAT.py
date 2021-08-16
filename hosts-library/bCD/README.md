@@ -37,7 +37,7 @@ To generate the complex structure file for each guest bound to the bCD host in .
 
 cpptraj -p bcd-1-s.prmtop -y bcd-1-s.rst7 -x host-bcd-guest-1.pdb > cpptraj.log
 
-, for calculations on the bCD host in complex with guest number 1 in the 's' (secondary) orientation. Copy the generated structure (host-bcd-guest-1s.pdb) to the *GHOAT/structures* folder inside the GHOAT package.
+, for calculations on the bCD host in complex with guest number 1 in the 's' (secondary) orientation. Copy the generated structure (host-bcd-guest-1.pdb) to the *GHOAT/structures* folder inside the GHOAT package.
 
 ### Running the calculations
 

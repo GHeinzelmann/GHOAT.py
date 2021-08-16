@@ -37,7 +37,7 @@ To generate the complex structure file for each guest bound to the aCD host in .
 
 cpptraj -p acd-1-s.prmtop -y acd-1-s.rst7 -x host-acd-guest-1.pdb > cpptraj.log
 
-, for calculations on the aCD host in complex with guest number 1 in the 's' (secondary) orientation. Copy the generated structure (host-acd-guest-1s.pdb) to the *GHOAT/structures* folder inside the GHOAT package.
+, for calculations on the aCD host in complex with guest number 1 in the 's' (secondary) orientation. Copy the generated structure (host-acd-guest-1.pdb) to the *GHOAT/structures* folder inside the GHOAT package.
 
 ### Running the calculations
 
