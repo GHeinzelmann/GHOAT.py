@@ -5,7 +5,7 @@ package require Orient
 namespace import Orient::orient
 
 set sel [atomselect 0 "all"]
-set hos [atomselect 0 "resid FIRST to LAST and noh"]
+set hos [atomselect 0 "(not resname MMM) and (resid FIRST to LAST and noh)"]
 set I [draw principalaxes $hos]
 set A [orient $hos [lindex $I 2] {0 0 1}]
 $sel move $A
@@ -15,7 +15,7 @@ $sel move $A
 set I [draw principalaxes $hos]
 $sel move [transaxis y -90]
 
-set hos [atomselect 0 "resid FIRST to LAST and noh"]
+set hos [atomselect 0 "(not resname MMM) and (resid FIRST to LAST and noh)"]
 $sel moveby [vecinvert [measure center $hos weight mass]]
 
 set a [atomselect 0 "resname MMM and noh"]
@@ -85,7 +85,7 @@ set angle3 {}
 set angle {}
 set t [atomselect 0 "resname MMM and name $i"]
 set p [atomselect 0 "resname MMM and name $aa1"]
-set d [atomselect 0 "resid H1A and name NN1"]
+set d [atomselect 0 "(not resname MMM) and (resid H1A and name NN1)"]
 if {$i ne $aa1} { set a1 [$d get index]
 set d1 [measure center $t]
 set d2 [measure center $p]
@@ -251,7 +251,7 @@ set fileId [open $filename "w"]
 puts -nonewline $fileId $data
 close $fileId
 
-set a [atomselect 0 "resid FIRST to LAST and noh"]
+set a [atomselect 0 "(not resname MMM) and (resid FIRST to LAST and noh)"]
 set b [atomselect 0 "resname MMM and noh"]
 set c [atomselect 1 all]
 $c moveby [vecsub [measure center $a weight mass] [measure center $c weight mass]]
@@ -266,5 +266,11 @@ $b moveby $dlis2
 
 set all [atomselect 0 all]
 $all writepdb hhhh-gggg-aligned.pdb
+
+set guest [atomselect 0 "resname MMM"]
+$guest writepdb gggg-aligned.pdb
+
+set host [atomselect 0 "(not resname MMM) and (resid FIRST to LAST)"]
+$host writepdb hhhh-aligned.pdb
 
 exit

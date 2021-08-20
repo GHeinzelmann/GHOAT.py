@@ -65,6 +65,7 @@ water_model     = TIP3P   # Water model (SPCE, TIP4PEW or TIP3P)
 num_waters      = 3000    # Number of waters in the system
 buffer_x        = 10      # Box solvation buffer in the x axis
 buffer_y        = 10      # Box solvation buffer in the y axis 
+#buffer_z        = 20      # Box solvation buffer in the z axis 
 lig_buffer      = 14      # Buffer size for the three axes of the ligand-only box
 
 # Counterions 
@@ -72,8 +73,7 @@ lig_buffer      = 14      # Buffer size for the three axes of the ligand-only bo
 neutralize_only = no     # neutralize only or also ionize (yes or no)
 cation = Na+             # cation for neutralization/ionization                
 anion = Cl-              # anion  for neutralization/ionization   
-num_cations = 8          # number of extra cations after neutralization
-num_cat_ligbox = 4       # number of extra cations after neutralization for ligand box
+ion_conc = 0.15          # salt concentration for all boxes
 
 # Simulation parameters
 

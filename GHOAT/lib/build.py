@@ -347,6 +347,8 @@ def build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, h
           shutil.copy(file, './')
         shutil.copy('../../build_files/md%02d.rst7' %fwin, './md00.rst7')
         shutil.copy('../../build_files/anchors-'+guest+'.txt', './')
+        for file in glob.glob('../../ff/*.mol2'):
+          shutil.copy(file, './')
         sp.call('cpptraj -p full.prmtop -y md00.rst7 -x full.rst7 > cpptraj1.log', shell=True)
         shutil.copy('./full.rst7', './full.inpcrd')
         sp.call('cpptraj -p full.prmtop -y md00.rst7 -x full.pdb > cpptraj2.log', shell=True)
@@ -376,7 +378,7 @@ def build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, h
         shutil.copy('../../build_files/'+host+'.pdb', './')
         shutil.copy('../../build_files/vac_host.prmtop', './')
         shutil.copy('../../build_files/vac_host.pdb', './')
-        shutil.copy('../../build_files/'+host+'.pdb', './build.pdb')
+        shutil.copy('../../build_files/'+host+'-aligned.pdb', './build.pdb')
         shutil.copy('../../build_files/'+host+'-'+guest+'.pdb', './')
         shutil.copy('../../build_files/anchors-'+guest+'.txt', './')
         shutil.copy('../../build_files/dum.mol2', './')
@@ -388,6 +390,8 @@ def build_rest(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, h
       else:
         for file in glob.glob('../r00/*'):
           shutil.copy(file, './')
+
+    return 'all'
 
 def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, host, guest, final_host_num, comp, win, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt, sdr_dist):
 
@@ -450,6 +454,18 @@ def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, ho
       os.rename('./anchors.txt', 'anchors-'+guest.lower()+'.txt')
 
       os.chdir('../sdr/')
+
+
+      # Check size of anchor file 
+      anchor_file = '../build_files/anchors-'+guest.lower()+'.txt'
+      if os.stat(anchor_file).st_size == 0:
+        return 'anch1'
+      f = open(anchor_file, 'r')
+      for line in f:
+        splitdata = line.split()
+        if len(splitdata) < 3:
+          return 'anch2'
+
 
     # Copy and replace simulation files for the first window
     if int(win) == 0:
@@ -645,8 +661,9 @@ def build_dec(fwin, min_adis, max_adis, l1_range, H1, H2, H3, hmr, hmol, mol, ho
       for file in glob.glob('../'+comp+'00/*'):
         shutil.copy(file, './')
 
+    return 'all'
 
-def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_def, neut, buffer_x, buffer_y, stage, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt, final_host_num):
+def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_def, neut, buffer_x, buffer_y, buffer_z, stage, ntpr, ntwr, ntwe, ntwx, cut, gamma_ln, barostat, amber_ff, dt, final_host_num):
     
     # Copy and replace simulation files
     if stage == 'equil':
@@ -859,68 +876,109 @@ def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_d
        water_box = water_model.upper()+'BOX'
        ratio = 0.0573
 
-    # Update target number of residues according to the ion definitions 
-    if (neut == 'no'):
-      target_num = int(num_waters - neu_cat + neu_ani + 2*int(ion_def[2])) 
-    elif (neut == 'yes'):
-      target_num = int(num_waters + neu_cat + neu_ani)
+
+    # Fixed number of water molecules
+    if num_waters != 0:
+
+      # Create the first box guess to get the initial number of waters and cross sectional area
+      buff = 50.0  
+      scripts.write_tleap(mol, hmol, guest, host, water_model, water_box, buff, buffer_x, buffer_y)
+      num_added = scripts.check_tleap()
+      cross_area = scripts.cross_sectional_area()
+
+      # First iteration to estimate box volume and number of ions
+      res_diff = num_added - num_waters
+      buff_diff = res_diff/(ratio*cross_area)
+      buff -= buff_diff
+      print(buff)
+      if buff < 0:
+        print ('Not enough water molecules to fill the system in the z direction, please increase the number of water molecules')
+        sys.exit(1)
+      # Get box volume and number of added ions
+      scripts.write_tleap(mol, hmol, guest, host, water_model, water_box, buff, buffer_x, buffer_y)
+      box_volume = scripts.box_volume()
+      print(box_volume)
+      num_cations = round(0.85*ion_def[2]*6.02e23*box_volume*1e-27) # 0.85 factor to account for some shrinking of the box during equilibration
+      print(num_cations)
+
+      # Number of cations and anions   
+      num_cat = num_cations
+      num_ani = num_cations - neu_cat + neu_ani
+      # If there are not enough chosen cations to neutralize the system
+      if num_ani < 0:
+        num_cat = neu_cat
+        num_cations = neu_cat
+        num_ani = 0
+
+      # Update target number of residues according to the ion definitions 
+      if (neut == 'no'):
+        target_num = int(num_waters - neu_cat + neu_ani + 2*int(num_cations)) 
+      elif (neut == 'yes'):
+        target_num = int(num_waters + neu_cat + neu_ani)
     
     
-    # Number of cations and anions   
-    num_cat = ion_def[2]
-    num_ani = ion_def[2] - neu_cat + neu_ani
-    # If there are not enough chosen cations to neutralize the system
-    if num_ani < 0:
-      num_cat = neu_cat  
-      num_ani = 0 
+      # Define a few parameters for solvation iteration
+      buff = 50.0
+      count = 0
+      max_count = 10
+      rem_limit = 16
+      factor = 1
+      ind = 0.90   
+      buff_diff = 1.0  
 
-    # Create the first box guess to get the initial number of waters and cross sectional area
-    buff = 50.0  
-    scripts.write_tleap(mol, hmol, guest, host, water_model, water_box, buff, buffer_x, buffer_y)
-    num_added = scripts.check_tleap()
-    cross_area = scripts.cross_sectional_area()
-
-    # Define a few parameters for solvation iteration
-    count = 0
-    max_count = 10
-    rem_limit = 16
-    factor = 1
-    ind = 0.90   
-    buff_diff = 1.0  
-
-    # Iterate to get the correct number of waters
-    while num_added != target_num:
-        count += 1
-        if count > max_count:
-        # Try different parameters
-             rem_limit += 4
-             if ind > 0.5:
-               ind = ind - 0.02
-             else:
-               ind = 0.90
-             factor = 1
-             max_count = max_count + 10
-        tleap_remove = None
-        # Manually remove waters if inside removal limit
-        if num_added > target_num and (num_added - target_num) < rem_limit:
-            difference = num_added - target_num
-            tleap_remove = [target_num + 1 + i for i in range(difference)]
-            scripts.write_tleap(mol, hmol, guest, host, water_model, water_box, buff, buffer_x, buffer_y, tleap_remove)
-            scripts.check_tleap()
-            break
-        # Set new buffer size based on chosen water density
-        res_diff = num_added - target_num - (rem_limit/2)
-        buff_diff = res_diff/(ratio*cross_area)
-        buff -= (buff_diff * factor)
-        if buff < 0:
-           print ('Not enough water molecules to fill the system in the z direction, please increase the number of water molecules or reduce the x and y buffers')
-           sys.exit(1)
-        # Set relaxation factor  
-        factor = ind * factor
-        # Get number of waters
-        scripts.write_tleap(mol, hmol, guest, host, water_model, water_box, buff, buffer_x, buffer_y)
-        num_added = scripts.check_tleap()       
+      # Iterate to get the correct number of waters
+      while num_added != target_num:
+          count += 1
+          if count > max_count:
+          # Try different parameters
+               rem_limit += 4
+               if ind > 0.5:
+                 ind = ind - 0.02
+               else:
+                 ind = 0.90
+               factor = 1
+               max_count = max_count + 10
+          tleap_remove = None
+          # Manually remove waters if inside removal limit
+          if num_added > target_num and (num_added - target_num) < rem_limit:
+              difference = num_added - target_num
+              tleap_remove = [target_num + 1 + i for i in range(difference)]
+              scripts.write_tleap(mol, hmol, guest, host, water_model, water_box, buff, buffer_x, buffer_y, tleap_remove)
+              scripts.check_tleap()
+              break
+          # Set new buffer size based on chosen water density
+          res_diff = num_added - target_num - (rem_limit/2)
+          buff_diff = res_diff/(ratio*cross_area)
+          buff -= (buff_diff * factor)
+          if buff < 0:
+             print ('Not enough water molecules to fill the system in the z direction, please increase the number of water molecules or reduce the x and y buffers')
+             sys.exit(1)
+          # Set relaxation factor  
+          factor = ind * factor
+          # Get number of waters
+          scripts.write_tleap(mol, hmol, guest, host, water_model, water_box, buff, buffer_x, buffer_y)
+          num_added = scripts.check_tleap()       
+    # Fixed z buffer 
+    elif buffer_z != 0:
+      buff = buffer_z
+      tleap_remove = None
+      # Get box volume and number of added ions
+      scripts.write_tleap(mol, hmol, guest, host, water_model, water_box, buff, buffer_x, buffer_y)
+      box_volume = scripts.box_volume()
+      print(box_volume)
+      num_cations = round(0.85*ion_def[2]*6.02e23*box_volume*1e-27) # 0.85 factor to account for some shrinking of the box during equilibration
+      # Number of cations and anions   
+      num_cat = num_cations
+      num_ani = num_cations - neu_cat + neu_ani
+      # If there are not enough chosen cations to neutralize the system
+      if num_ani < 0:
+        num_cat = neu_cat
+        num_cations = neu_cat
+        num_ani = 0
+      print(num_cations)
  
+
+
     # Write the final tleap file with the correct system size and removed water molecules
     shutil.copy('tleap.in', 'tleap_solvate.in')
     tleap_solvate = open('tleap_solvate.in', 'a')
@@ -995,7 +1053,7 @@ def create_box(comp, hmr, guest, host, mol, hmol, num_waters, water_model, ion_d
       os.chdir('../')
 
 
-def guest_box(guest, mol, lig_buffer, water_model, neut, ion_lig, comp, amber_ff):
+def guest_box(guest, mol, lig_buffer, water_model, neut, ion_def, comp, amber_ff):
 
     # Define volume density for different water models
     if water_model == 'TIP3P':
@@ -1008,6 +1066,30 @@ def guest_box(guest, mol, lig_buffer, water_model, neut, ion_lig, comp, amber_ff
     # Copy ligand parameter files
     for file in glob.glob('../../ff/%s.*' %guest.lower()):
         shutil.copy(file, './')
+
+    # Write and run preliminary tleap file
+    tleap_solvate = open('tmp_tleap.in', 'w')
+    tleap_solvate.write('source leaprc.'+amber_ff+'\n\n')
+    tleap_solvate.write('# Load the ligand parameters\n')
+    tleap_solvate.write('loadamberparams %s.frcmod\n'%(guest.lower()))
+    tleap_solvate.write('%s = loadmol2 %s.mol2\n\n'%(mol.upper(), guest.lower()))
+    tleap_solvate.write('model = loadpdb %s.pdb\n\n' %(guest.lower()))
+    tleap_solvate.write('# Load the water and jc ion parameters\n')
+    tleap_solvate.write('source leaprc.water.%s\n'%(water_model.lower()))
+    tleap_solvate.write('loadamberparams frcmod.ionsjc_%s\n\n'%(water_model.lower()))
+    tleap_solvate.write('check model\n')
+    tleap_solvate.write('savepdb model vac.pdb\n')
+    tleap_solvate.write('saveamberparm model vac.prmtop vac.inpcrd\n\n')
+    tleap_solvate.write('# Create water box with chosen model\n')
+    tleap_solvate.write('solvatebox model ' + water_box + ' '+str(lig_buffer)+'\n\n')
+    tleap_solvate.write('quit\n')
+    tleap_solvate.close()
+
+    # Get box volume and number of added ions
+    box_volume = scripts.box_volume()
+    print(box_volume)
+    num_cations = round(0.85*ion_def[2]*6.02e23*box_volume*1e-27) # 0.85 factor to account for some shrinking of the box during equilibration
+    print(num_cations)
 
     # Write and run tleap file
     tleap_solvate = open('tleap_solvate.in', 'a')
@@ -1026,12 +1108,12 @@ def guest_box(guest, mol, lig_buffer, water_model, neut, ion_lig, comp, amber_ff
     tleap_solvate.write('solvatebox model ' + water_box + ' '+str(lig_buffer)+'\n\n')
     if (neut == 'no'):
         tleap_solvate.write('# Add ions for neutralization/ionization\n')
-        tleap_solvate.write('addionsrand model %s %d\n' % (ion_lig[0], ion_lig[2]))
-        tleap_solvate.write('addionsrand model %s 0\n' % (ion_lig[1]))
+        tleap_solvate.write('addionsrand model %s %d\n' % (ion_def[0], num_cations))
+        tleap_solvate.write('addionsrand model %s 0\n' % (ion_def[1]))
     elif (neut == 'yes'):
         tleap_solvate.write('# Add ions for neutralization/ionization\n')
-        tleap_solvate.write('addionsrand model %s 0\n' % (ion_lig[0]))
-        tleap_solvate.write('addionsrand model %s 0\n' % (ion_lig[1]))
+        tleap_solvate.write('addionsrand model %s 0\n' % (ion_def[0]))
+        tleap_solvate.write('addionsrand model %s 0\n' % (ion_def[1]))
     tleap_solvate.write('\n')
     tleap_solvate.write('desc model\n')
     tleap_solvate.write('savepdb model full.pdb\n')

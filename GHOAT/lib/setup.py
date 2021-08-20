@@ -69,7 +69,7 @@ def restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, we
 
 
       # Get host heavy atoms
-      with open('./full.pdb') as f_in:
+      with open('./vac.pdb') as f_in:
         lines = (line.rstrip() for line in f_in)
         lines = list(line for line in lines if line) # Non-blank lines in a list   
         for i in range(0, len(lines)):
@@ -96,7 +96,7 @@ def restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, we
         H3 = ":"+p3_resid+"@"+h3_atom
 
         # Get host heavy atoms
-        with open('./full.pdb') as f_in:
+        with open('./vac.pdb') as f_in:
           lines = (line.rstrip() for line in f_in)
           lines = list(line for line in lines if line) # Non-blank lines in a list   
           for i in range(0, len(lines)):
@@ -107,7 +107,7 @@ def restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, we
                   hvy_h.append(lines[i][6:11].strip()) 
 
         # Get bulk guest heavy atoms
-        with open('./full.pdb') as f_in:
+        with open('./vac.pdb') as f_in:
           lines = (line.rstrip() for line in f_in)
           lines = list(line for line in lines if line) # Non-blank lines in a list   
           if comp == 'e':
@@ -312,12 +312,33 @@ def restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, we
       msk[mat[i]]= ''
 
     if (comp != 'c'):
-      msk = filter(None, msk) 
+      msk = list(filter(None, msk)) 
       msk = [m.replace(':1',':'+lig_res) for m in msk]
+    else:
+      msk = list(filter(None, msk)) 
 
 
+    # Remove dihedral restraints on sp carbons to avoid crashes 
+    sp_carb = []
+    with open('./'+guest+'.mol2') as fin:
+      lines = (line.rstrip() for line in fin)
+      lines = list(line for line in lines if line) # Non-blank lines in a list   
+      for line in lines:
+        data = line.split()
+        if len(data) > 6:
+          if data[5] == 'cg' or data[5] == 'c1': 
+            sp_carb.append(data[1])
     for i in range(0, len(msk)):
-      rst.append(msk[i])
+      rem_dih = 0
+      data = msk[i].split()
+      for j in range(0, len(sp_carb)):
+        atom_name1 = data[1].split('@')[1]
+        atom_name2 = data[2].split('@')[1]
+        if atom_name1 == sp_carb[j] or atom_name2 == sp_carb[j]:
+          rem_dih = 1
+          break
+      if rem_dih == 0:
+        rst.append(msk[i])
 
     # New restraints for protein only
     if (comp == 'r'):
