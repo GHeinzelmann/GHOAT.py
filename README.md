@@ -1,6 +1,6 @@
 # GHOAT.py
 
-The Guest-HOst Affinity Tool (GHOAT.py) is a python tool for fully automated absolute binding free energy calculations applied to guest-host systems. Its workflow encompasses generation of parameters using Antechamber, preparation of the simulation files, and post-processing to retrieve the binding free energy. By using the _pmemd.cuda_ software from AMBER20, it is able to perform several calculations at at low cost using graphics processing units (GPUs).
+The Guest-HOst Affinity Tool (GHOAT.py) is a python tool for fully automated absolute binding free energy calculations applied to guest-host systems. Its workflow encompasses generation of parameters using Antechamber, preparation of the simulation files, and post-processing to retrieve the binding free energy. By using the _pmemd.cuda_ software from AMBER20/22, it is able to perform several calculations at at low cost using graphics processing units (GPUs).
 
 GHOAT.py uses the Simultaneous Decoupling and Recoupling (SDR) binding free energy method, which was first introduced by its brother program, the BAT.py software, available at https://github.com/GHeinzelmann/BAT.py [1]. The SDR method is suitable for neutral and charged guests, with and without access to the solvent, making GHOAT.py applicable to any guest-host system of choice. Our software also introduces a gold standard for the application/removal of restraints, so the results can be directly applied to guest and host parameter evaluation and optimization.     
 
@@ -70,9 +70,11 @@ You should see a ./Results directory inside each ./fe/guest folder, with all of 
 
 To include a new host system, some additional input data is needed. They include three chosen host anchors for the application of restraints, and possibly a few additional variables and files. These can be found inside the ./host-library folder for all hosts from the proposed benchmarks [4], with new hosts being added and validated with time.    
 
-# More information
+# More information and GHOAT.py citation
 
-The user guide provides the complete theory behind the method, as well as the meaning of each input parameter, and instructions on how to apply the current method to any other guest-host system. For more information you can contact the author directly:
+Reference [9] explains the GHOAT calculations and applies it to a few sample systems. Please cite it if using the GHOAT.py software. 
+
+The user guide, inside the doc folder, also provides the complete theory behind the calculations, and instructions on how to apply it to any other guest-host system. For more information you can contact the author directly:
 
 Germano Heinzelmann <br/>
 Departamento de Física, Universidade Federal de Santa Catarina <br/>
@@ -101,5 +103,7 @@ Germano Heinzelmann thanks FAPESC and CNPq for the research grants.
 7. J. Wang, R.M. Wolf, J.W. Caldwell, and P. A. Kollman, D. A. Case (2004) "Development and testing of a general AMBER force field". Journal of Computational Chemistry, 25, 1157-1174.
 
 8. M. R. Shirts and J. Chodera (2008) “Statistically optimal analysis of samples from multiple equilibrium states.” Journal of  Chemical Physics, 129, 129105.
+
+9. F. P. S. Souza, G. Heinzelmann and G. F. Caramori (2023) “Investigating the Solvent Effects on Binding Affinity of PAHs−ExBox4+ Complexes: An Alchemical Approach”. Journal of Physical Chemistry B, 127, 249.
 
 
