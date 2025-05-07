@@ -10,6 +10,111 @@ import math
 import numpy as np 
 from lib.pymbar import MBAR # multistate Bennett acceptance ratio
 from lib.pymbar import timeseries # timeseries analysis
+from pathlib import Path
+
+def fe_openmm(components, temperature, pose, rest):
+
+    # Set initial values to zero
+    fe_a = fe_bd = fe_t = fe_m = fe_n = fe_v = fe_e = fe_c = fe_r = fe_l = fe_f = fe_w = fe_vs = fe_es = 0
+    fb_a = fb_bd = fb_t = fb_m = fb_n = fb_v = fb_e = fb_c = fb_r = fb_l = fb_f = fb_w = fb_es = fb_vs = 0
+    sd_a = sd_bd = sd_t = sd_m = sd_n = sd_v = sd_e = sd_c = sd_r = sd_l = sd_f = sd_w = sd_vs = sd_es = 0
+
+
+    # Acquire simulation data
+    os.chdir('fe')
+    os.chdir(pose)
+    for i in range(0, len(components)):
+      comp = components[i]
+      if comp == 'a' or comp == 'l' or comp == 't' or comp == 'c' or comp == 'r' or comp == 'm' or comp == 'n':
+        os.chdir('rest')
+        os.chdir('%s-comp' %(comp))
+        if (comp == 't'):
+          # Calculate analytical release for dd and sdr
+          with open('disang.rest', "r") as f_in:
+            lines = (line.rstrip() for line in f_in)
+            lines = list(line for line in lines if '#Lig_TR' in line)
+            splitdata = lines[0].split()
+            r0 = float(splitdata[6].strip(','))
+            splitdata = lines[1].split()
+            a1_0  = float(splitdata[6].strip(','))
+            splitdata = lines[2].split()
+            t1_0  = float(splitdata[6].strip(','))
+            splitdata = lines[3].split()
+            a2_0  = float(splitdata[6].strip(','))
+            splitdata = lines[4].split()
+            t2_0  = float(splitdata[6].strip(','))
+            splitdata = lines[5].split()
+            t3_0  = float(splitdata[6].strip(','))
+            k_r = rest[2]
+            k_a = rest[3]
+            fe_bd = fe_int_op(r0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, temperature)
+        out_file=Path('./output.dat')
+        if out_file.exists():
+          with open(out_file, "r") as f_in:
+            lines = (line.rstrip() for line in f_in)
+            lines = list(line for line in lines if line) # Non-blank lines in a list   
+            for k in range(0, len(lines)):
+              splitdata = lines[k].split()
+              if (splitdata[0].strip() == 'Relative'):
+                if comp == 'c':
+                  fe_c = -1.00*float(splitdata[7])
+                  sd_c = float(splitdata[10])
+                elif comp == 'a':
+                  fe_a = float(splitdata[7])
+                  sd_a = float(splitdata[10])
+                elif comp == 't':
+                  fe_t = float(splitdata[7])
+                  sd_t = float(splitdata[10])
+                elif comp == 'l':
+                  fe_l = float(splitdata[7])
+                  sd_l = float(splitdata[10])
+                elif comp == 'r':
+                  fe_r = -1.00*float(splitdata[7])
+                  sd_r = float(splitdata[10])
+      elif comp == 'e' or comp == 'v':
+        os.chdir('sdr')
+        os.chdir('%s-comp' %(comp))
+        out_file=Path('./output.dat')
+        if out_file.exists():
+          with open(out_file, "r") as f_in:
+            lines = (line.rstrip() for line in f_in)
+            lines = list(line for line in lines if line) # Non-blank lines in a list   
+            for k in range(0, len(lines)):
+              splitdata = lines[k].split()
+              if (splitdata[0].strip() == 'Relative'):
+                if comp == 'e':
+                  fe_es = -1.00*float(splitdata[7])
+                  sd_es = float(splitdata[10])
+                elif comp == 'v':
+                  fe_vs = -1.00*float(splitdata[7])
+                  sd_vs = float(splitdata[10])
+      os.chdir('../../')
+
+    # Write final results
+    total_sdr = fe_a + fe_l + fe_t + fe_es + fe_vs + fe_bd + fe_c + fe_r
+    sd_sdr = math.sqrt(sd_a**2 + sd_l**2 + sd_t**2 + sd_es**2 + sd_vs**2 + sd_bd**2 + sd_c**2 + sd_r**2)
+
+    # Create Results folder
+    if not os.path.exists('Results'):
+      os.makedirs('Results')
+
+    resfile = open('./Results/Results.dat', 'w')
+    resfile.write('\n----------------------------------------------\n')
+    resfile.write('All components SDR method')
+    resfile.write('\n----------------------------------------------\n\n')
+    resfile.write('%-21s %-10s %-4s\n\n' % ('Component', 'Free Energy', '(Error)'))
+    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Attach host CF', fe_a, sd_a))
+    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Attach guest CF', fe_l, sd_l))
+    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Attach guest TR', fe_t, sd_t))
+    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Electrostatic (HRE)', fe_es, sd_es))
+    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Lennard-Jones (HRE)', fe_vs, sd_vs))
+    resfile.write('%-20s %8.2f \n' % ('Release guest TR',fe_bd))
+    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Release guest CF', fe_c, sd_c))
+    resfile.write('%-20s %8.2f (%3.2f)\n\n' % ('Release host CF', fe_r, sd_r))
+    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Binding free energy', total_sdr, sd_sdr))
+    resfile.write('\n----------------------------------------------\n\n')
+    resfile.write('Energies in kcal/mol\n')
+    resfile.close()
 
 def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dec_int, rest, guest_rot):
 
@@ -51,7 +156,7 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
               k_a = rest[3]
               fe_bd = fe_int(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, guest_rot, temperature)
           # Get restraint trajectory file
-          sp.call('cpptraj -i restraints.in >& restraints.log', shell=True)
+          sp.call('cpptraj -i restraints.in > restraints.log 2>&1', shell=True)
           # Separate in blocks
           with open("restraints.dat", "r") as fin:
             for line in fin:
@@ -695,6 +800,42 @@ def fe_int(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, guest_rot, temperature)
       return R*temperature*np.log((1/(4.0*np.pi))*(1.0/1660.0)*r1_int*a1_int*t1_int*a2_int*t2_int)
     else:
       return R*temperature*np.log((1/(8.0*np.pi*np.pi))*(1.0/1660.0)*r1_int*a1_int*t1_int*a2_int*t2_int*t3_int)
+
+def fe_int_op(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, temperature):
+
+    R = 1.987204118e-3 # kcal/mol-K, a.k.a. boltzman constant
+    beta = 1/(temperature*R)
+
+    # Numerical integration limits and spacing (trapezoid)
+    r1lb,r1ub,r1st = [0.0,100.0,0.00001]
+    a1lb,a1ub,a1st = [0.0,np.pi,0.000001]
+    t1lb,t1ub,t1st = [-np.pi,np.pi,0.000001]
+    a2lb,a2ub,a2st = [0.0,np.pi,0.000001]
+
+    # Potential energy expressions
+    def f_r1(val):
+      return (val**2)*np.exp(-beta*k_r*(val-r1_0)**2)
+    def f_a1(val):
+      return np.sin(val)*np.exp(-beta*k_a*(val-np.radians(a1_0))**2)
+    def f_a2(val):
+      return np.sin(val)*np.exp(-beta*k_a*(val-np.radians(a2_0))**2)
+    def f_t1(val):
+      return np.exp(-beta*k_a*(1+np.cos(val-np.radians(t1_0)-np.pi))*2)
+
+
+    # Integrate translation and rotation
+    r1_int,a1_int,t1_int,a2_int = [0.0,0.0,0.0,0.0]
+    intrange = np.arange(r1lb,r1ub,r1st)
+    r1_int = np.trapz(f_r1(intrange),intrange)
+    intrange = np.arange(a1lb,a1ub,a1st)
+    a1_int = np.trapz(f_a1(intrange),intrange)
+    intrange = np.arange(t1lb,t1ub,t1st)
+    t1_int = np.trapz(f_t1(intrange),intrange)
+    intrange = np.arange(a2lb,a2ub,a2st)
+    a2_int = np.trapz(f_a2(intrange),intrange)
+
+    # Output total TR release free energy 
+    return R*temperature*np.log((1/(8.0*np.pi*np.pi))*(1.0/1660.0)*r1_int*a1_int*t1_int*a2_int*t1_int*t1_int)
 
 def fe_dd(comp, guest, mode, lambdas, weights, dec_int, rest_file, temperature):
 

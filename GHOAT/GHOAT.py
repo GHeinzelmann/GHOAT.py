@@ -51,6 +51,29 @@ final_host_num = 1
 buffer_z = 0
 num_waters = 0
 ion_conc = 0.0
+software = 'amber20'
+
+a_itera1 = 0
+a_itera2 = 0
+l_itera1 = 0
+l_itera2 = 0
+t_itera1 = 0
+t_itera2 = 0
+c_itera1 = 0
+c_itera2 = 0
+r_itera1 = 0
+r_itera2 = 0
+e_itera1 = 0
+e_itera2 = 0
+v_itera1 = 0
+v_itera2 = 0
+
+ntpr = '1000'
+ntwr = '10000'
+ntwe = '0'
+ntwx = '2500'
+cut = '9.0'
+barostat = '2'
 
 # Read arguments that define input file and stage
 if len(sys.argv) < 5:
@@ -115,6 +138,40 @@ for i in range(0, len(lines)):
             v_steps1 = scripts.check_input('int', lines[i][1], input_file, lines[i][0]) 
         elif lines[i][0] == 'v_steps2':
             v_steps2 = scripts.check_input('int', lines[i][1], input_file, lines[i][0]) 
+        # OpenMM only
+        elif lines[i][0] == 'a_itera1':
+            a_itera1 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'a_itera2':
+            a_itera2 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'l_itera1':
+            l_itera1 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'l_itera2':
+            l_itera2 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 't_itera1':
+            t_itera1 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 't_itera2':
+            t_itera2 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'c_itera1':
+            c_itera1 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'c_itera2':
+            c_itera2 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'r_itera1':
+            r_itera1 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'r_itera2':
+            r_itera2 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'e_itera1':
+            e_itera1 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'e_itera2':
+            e_itera2 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'v_itera1':
+            v_itera1 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'v_itera2':
+            v_itera2 = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'itera_steps':
+            itera_steps = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
+        elif lines[i][0] == 'itcheck':
+            itcheck = lines[i][1]
+        ####
         elif lines[i][0] == 'guest_list':
             newline = lines[i][1].strip('\'\"-,.:;#()][').split(',')
             for j in range(0, len(newline)):
@@ -288,6 +345,15 @@ for i in range(0, len(lines)):
                 sys.exit(1)
         elif lines[i][0] == 'dt':
             dt = lines[i][1]
+        elif lines[i][0] == 'software':
+            if lines[i][1].lower() == 'openmm':
+                software = lines[i][1].lower()
+            elif lines[i][1].lower() == 'amber20':
+                software = lines[i][1].lower()
+            else:
+                print('Simulation software not recognized, please choose openmm or amber20')
+                sys.exit(1)
+
 
 if num_waters == 0 and buffer_z == 0:
   print('Wrong input! Please choose either a number of water molecules or a z buffer value.')
@@ -339,6 +405,40 @@ for i in range(0, len(guest_list)):
 
 for i in range(0, len(guest_list_code)):
   code_def.append(guest_list_code[i])
+
+
+# Adjust components and windows for OpenMM
+
+if software == 'openmm' and stage == 'fe':
+  components_inp = list(components)
+  print(components_inp)
+  components = ['t', 'c', 'v']
+  attach_rest_inp = list(attach_rest)
+  print(attach_rest_inp)
+  attach_rest = [ 100.0 ]
+  lambdas_inp = list(lambdas)
+  print(lambdas_inp)
+  lambdas = [ 0.0 ]
+  dt = str(float(dt)*1000)
+  print(dt)
+  cut = str(float(cut)/10)
+  print(cut)
+
+  # Convert equil output file
+  os.chdir('equil')
+  for i in range(0, len(guest_def)):
+    guest = guest_def[i]
+    rng = len(release_eq) - 1
+    if os.path.exists(guest):
+      os.chdir(guest)
+      convert_file = open('convert.in', 'w')
+      convert_file.write('parm full.prmtop\n')
+      convert_file.write('trajin md%02d.dcd\n' %rng)
+      convert_file.write('trajout md%02d.rst7 onlyframes 10\n' %rng)
+      convert_file.close()
+      sp.call('cpptraj -i convert.in > convert.log', shell=True)
+      os.chdir('../')
+  os.chdir('../')
 
 if stage == 'equil':
   comp = 'q'
@@ -530,8 +630,219 @@ elif stage == 'fe':
     print ('WARNING: Could not find the ligand L2 or L3 anchors for', aa2_guests)
     print ('Try reducing the min_adis parameter in the input file.')
 elif stage == 'analysis':
+  # Free energy analysis for OpenMM
+  if software == 'openmm':
+    for i in range(0, len(guest_def)):
+      guest = guest_def[i]
+      analysis.fe_openmm(components, temperature, guest, rest)
+      os.chdir('../../')
+  else:
   # Free energies MBAR/TI and analytical calculations
+    for i in range(0, len(guest_def)):
+      guest = guest_def[i]
+      analysis.fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dec_int, rest, guest_rot)
+      os.chdir('../../')
+
+# Convert equilibration folders to openmm
+
+if software == 'openmm' and stage == 'equil':
+
+  # Adjust a few variables
+  cut = str(float(cut)/10)
+  dt = str(float(dt)*1000)
+
+  os.chdir('equil')
   for i in range(0, len(guest_def)):
     guest = guest_def[i]
-    analysis.fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dec_int, rest, guest_rot)
-    os.chdir('../../')
+    rng = len(release_eq) - 1
+    if os.path.exists(guest):
+      print(guest)
+      os.rename(guest, guest+'-amber')
+      os.mkdir(guest)
+      os.chdir(guest)
+#      shutil.copy('../'+guest+'-amber/equil-%s.pdb' % mol.lower(), './')
+      shutil.copy('../'+guest+'-amber/cv.in', './')
+      shutil.copy('../'+guest+'-amber/assign.dat', './')
+      for file in glob.glob('../'+guest+'-amber/vac*'):
+        shutil.copy(file, './')
+      for file in glob.glob('../'+guest+'-amber/full*'):
+        shutil.copy(file, './')
+      for file in glob.glob('../'+guest+'-amber/disang*'):
+        shutil.copy(file, './')
+      fin = open('../../run_files/PBS-equil-op', "rt")
+      data = fin.read()
+      data = data.replace('RANGE', '%02d' %rng).replace('POSE', guest)
+      fin.close()
+      fin = open('PBS-equil', "wt")
+      fin.write(data)
+      fin.close()
+      fin = open('../../run_files/local-equil-op.bash', "rt")
+      data = fin.read()
+      data = data.replace('RANGE', '%02d' %rng)
+      fin.close()
+      fin = open('local-equil.bash', "wt")
+      fin.write(data)
+      fin.close()
+      for j in range(0, len(release_eq)):
+        fin = open('../../lib/equil.py', "rt")
+        data = fin.read()
+        data = data.replace('LIG', mol.upper()).replace('TMPRT', str(temperature)).replace('TSTP', str(dt)).replace('GAMMA_LN', str(gamma_ln)).replace('STG','%02d' %j).replace('CTF', cut)
+        if hmr == 'yes':
+          data = data.replace('PRMFL', 'full.hmr.prmtop')
+        else:
+          data = data.replace('PRMFL', 'full.prmtop')
+        if j == rng:
+          data = data.replace('TOTST', str(eq_steps2))
+        else:
+          data = data.replace('TOTST', str(eq_steps1))
+        fin.close()
+        fin = open('equil-%02d.py' %j, "wt")
+        fin.write(data)
+        fin.close()
+      os.chdir('../')
+      shutil.rmtree('./'+guest+'-amber')
+  print(os.getcwd())
+
+
+if software == 'openmm' and stage == 'fe':
+
+  # Redefine input arrays
+
+  components = list(components_inp)
+  attach_rest = list(attach_rest_inp)
+  lambdas = list(lambdas_inp)
+  lambdas_rest = []
+  for i in attach_rest:
+    lbd_rst=float(i)/float(100)
+    lambdas_rest.append(lbd_rst)
+  Input = lambdas_rest
+  lambdas_rest = ['{:.5f}'.format(elem) for elem in Input]
+
+  # Define number of steps for all stages
+  dic_itera1 = {}
+  dic_itera2 = {}
+  dic_itera1['a'] = a_itera1
+  dic_itera2['a'] = a_itera2
+  dic_itera1['l'] = l_itera1
+  dic_itera2['l'] = l_itera2
+  dic_itera1['t'] = t_itera1
+  dic_itera2['t'] = t_itera2
+  dic_itera1['c'] = c_itera1
+  dic_itera2['c'] = c_itera2
+  dic_itera1['r'] = r_itera1
+  dic_itera2['r'] = r_itera2
+  dic_itera1['v'] = v_itera1
+  dic_itera2['v'] = v_itera2
+  dic_itera1['e'] = e_itera1
+  dic_itera2['e'] = e_itera2
+  # Start script
+
+  print('')
+  print('#############################')
+  print('## OpenMM patch for BAT.py ##')
+  print('#############################')
+  print('')
+  print('Components: ', components)
+  print('')
+  print('Decoupling lambdas: ', lambdas)
+  print('')
+  print('Restraint lambdas: ', lambdas_rest)
+  print('')
+
+  # Generate folder and restraints for all components and windows
+  for i in range(0, len(guest_def)):
+    if not os.path.exists(guest_def[i]):
+      continue
+    os.chdir(guest_def[i])
+    for j in range(0, len(components)):
+      comp = components[j]
+      if comp == 'a' or comp == 'l' or comp == 't' or comp == 'r' or comp == 'c':
+          if not os.path.exists('rest'):
+            os.makedirs('rest')
+          os.chdir('rest')
+          if not os.path.exists(comp+'-comp'):
+            os.makedirs(comp+'-comp')
+          os.chdir(comp+'-comp')
+          itera1 = dic_itera1[comp]
+          itera2 = dic_itera2[comp]
+          shutil.copy('../../../../run_files/local-rest-op.bash', './local-rest.bash')
+          fin = open('../../../../run_files/PBS-rest-op', "rt")
+          data = fin.read()
+          data = data.replace('CMPN', comp).replace('POSE', guest_def[i])
+          fin.close()
+          fin = open('PBS-'+comp, "wt")
+          fin.write(data)
+          fin.close()
+          fin = open('../../../../lib/rest.py', "rt")
+          data = fin.read()
+          data = data.replace('LAMBDAS', '[%s]' % ' , '.join(map(str, lambdas_rest))).replace('LIG', mol.upper()).replace('TMPRT', str(temperature)).replace('TSTP', str(dt)).replace('SPITR', str(itera_steps)).replace('PRIT', str(itera2)).replace('EQIT', str(itera1)).replace('ITCH', str(itcheck)).replace('GAMMA_LN', str(gamma_ln)).replace('CMPN', str(comp)).replace('CTF', cut)
+          if hmr == 'yes':
+            data = data.replace('PRMFL', 'full.hmr.prmtop')
+          else:
+            data = data.replace('PRMFL', 'full.prmtop')
+          fin.close()
+          fin = open('rest.py', "wt")
+          fin.write(data)
+          fin.close()
+          if comp == 'c':
+            shutil.copy('../../../../'+stage+'/'+guest_def[i]+'/rest/c00/disang.rest', './')
+            for file in glob.glob('../../../../'+stage+'/'+guest_def[i]+'/rest/c00/full*'):
+              shutil.copy(file, './')
+          else:
+            shutil.copy('../../../../'+stage+'/'+guest_def[i]+'/rest/t00/disang.rest', './')
+            shutil.copy('../../../../'+stage+'/'+guest_def[i]+'/rest/t00/cv.in', './')
+            for file in glob.glob('../../../../'+stage+'/'+guest_def[i]+'/rest/t00/full*'):
+              shutil.copy(file, './')
+      elif comp == 'e' or comp == 'v':
+          if not os.path.exists('sdr'):
+            os.makedirs('sdr')
+          os.chdir('sdr')
+          if not os.path.exists(comp+'-comp'):
+            os.makedirs(comp+'-comp')
+          os.chdir(comp+'-comp')
+          itera1 = dic_itera1[comp]
+          itera2 = dic_itera2[comp]
+          shutil.copy('../../../../run_files/local-sdr-op.bash', './local-sdr.bash')
+          fin = open('../../../../run_files/PBS-sdr-op', "rt")
+          data = fin.read()
+          data = data.replace('CMPN', comp).replace('POSE', guest_def[i])
+          fin.close()
+          fin = open('PBS-'+comp, "wt")
+          fin.write(data)
+          fin.close()
+          fin = open('../../../../lib/sdr.py', "rt")
+          data = fin.read()
+          data = data.replace('LAMBDAS', '[%s]' % ' , '.join(map(str, lambdas))).replace('LIG', mol.upper()).replace('TMPRT', str(temperature)).replace('TSTP', str(dt)).replace('SPITR', str(itera_steps)).replace('PRIT', str(itera2)).replace('EQIT', str(itera1)).replace('ITCH', str(itcheck)).replace('GAMMA_LN', str(gamma_ln)).replace('CMPN', str(comp)).replace('CTF', cut)
+          if hmr == 'yes':
+            data = data.replace('PRMFL', 'full.hmr.prmtop')
+          else:
+            data = data.replace('PRMFL', 'full.prmtop')
+          fin.close()
+          fin = open('sdr.py', "wt")
+          fin.write(data)
+          fin.close()
+          shutil.copy('../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/disang.rest', './')
+          shutil.copy('../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/cv.in', './')
+          for file in glob.glob('../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/full*'):
+            shutil.copy(file, './')
+      os.chdir('../../')
+    # Clean up amber windows
+    dirpath = os.path.join('rest', 't00')
+    if os.path.exists(dirpath) and os.path.isdir(dirpath):
+      shutil.rmtree(dirpath)
+    dirpath = os.path.join('rest', 'amber_files')
+    if os.path.exists(dirpath) and os.path.isdir(dirpath):
+      shutil.rmtree(dirpath)
+    dirpath = os.path.join('rest', 'c00')
+    if os.path.exists(dirpath) and os.path.isdir(dirpath):
+      shutil.rmtree(dirpath)
+    dirpath = os.path.join('sdr', 'v00')
+    if os.path.exists(dirpath) and os.path.isdir(dirpath):
+      shutil.rmtree(dirpath)
+    dirpath = os.path.join('sdr', 'amber_files')
+    if os.path.exists(dirpath) and os.path.isdir(dirpath):
+      shutil.rmtree(dirpath)
+    os.chdir('../')
+
+
+
