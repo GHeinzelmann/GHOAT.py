@@ -340,7 +340,7 @@ def restraints(guest, host, host_rest_type, final_host_num, H1, H2, H3, rest, we
       if rem_dih == 0:
         rst.append(msk[i])
 
-    # New restraints for protein only
+    # New restraints for host only
     if (comp == 'r'):
       if host_rest_type == 'distances':
         rst = []
@@ -776,28 +776,32 @@ def sim_files(hmr, temperature, mol, num_sim, guest, comp, win, stage, steps1, s
           with open("./run-local.bash", "wt") as fout:
             for line in fin:
               fout.write(line)
-        with open('../run_files/PBS-'+stage, "rt") as fin:
-          with open("./PBS-run", "wt") as fout:
-            for line in fin:
-              fout.write(line.replace('STAGE', guest).replace('POSE', '%s%02d' %(comp, int(win))))
       else:
         with open('../run_files/local-lig.bash', "rt") as fin:
           with open("./run-local.bash", "wt") as fout:
             for line in fin:
               fout.write(line)
-        with open('../run_files/PBS-lig', "rt") as fin:
-          with open("./PBS-run", "wt") as fout:
-            for line in fin:
+      with open('../run_files/PBS-Am', "rt") as fin:
+        with open("./PBS-run", "wt") as fout:
+          for line in fin:
+              fout.write(line.replace('STAGE', guest).replace('POSE', '%s%02d' %(comp, int(win))))
+      with open('../run_files/SLURMM-Am', "rt") as fin:
+        with open("./SLURMM-run", "wt") as fout:
+          for line in fin:
               fout.write(line.replace('STAGE', guest).replace('POSE', '%s%02d' %(comp, int(win))))
     else:
       with open('../run_files/local-'+stage+'.bash', "rt") as fin:
         with open("./run-local.bash", "wt") as fout:
           for line in fin:
             fout.write(line.replace('RANGE', str(rng)))
-      with open('../run_files/PBS-'+stage, "rt") as fin:
+      with open('../run_files/PBS-Am', "rt") as fin:
         with open("./PBS-run", "wt") as fout:
           for line in fin:
-            fout.write(line.replace('STAGE', stage).replace('POSE', guest).replace('RANGE', str(rng)))
+            fout.write(line.replace('STAGE', stage).replace('POSE', guest))
+      with open('../run_files/SLURMM-Am', "rt") as fin:
+        with open("./SLURMM-run", "wt") as fout:
+          for line in fin:
+            fout.write(line.replace('STAGE', stage).replace('POSE', guest))
 
     os.chdir('../')
 
@@ -897,11 +901,14 @@ def dec_files(temperature, mol, num_sim, guest, comp, win, stage, steps1, steps2
         with open("./run-local.bash", "wt") as fout:
           for line in fin:
             fout.write(line)
-      with open('../run_files/PBS-sdr', "rt") as fin:
+      with open('../run_files/PBS-Am', "rt") as fin:
         with open("./PBS-run", "wt") as fout:
           for line in fin:
-            fout.write(line.replace('STAGE', guest).replace('POSE', '%s%02d' %(comp, int(win))))
-
+              fout.write(line.replace('STAGE', guest).replace('POSE', '%s%02d' %(comp, int(win))))
+      with open('../run_files/SLURMM-Am', "rt") as fin:
+        with open("./SLURMM-run", "wt") as fout:
+          for line in fin:
+              fout.write(line.replace('STAGE', guest).replace('POSE', '%s%02d' %(comp, int(win))))
     if (comp == 'e'):
       # Create heating and NPT equilibration files for charge decoupling
       with open("../amber_files/eqnpt-ch.in", "rt") as fin:
@@ -917,10 +924,14 @@ def dec_files(temperature, mol, num_sim, guest, comp, win, stage, steps1, steps2
         with open("./run-local.bash", "wt") as fout:
           for line in fin:
             fout.write(line)
-      with open('../run_files/PBS-sdr', "rt") as fin:
+      with open('../run_files/PBS-Am', "rt") as fin:
         with open("./PBS-run", "wt") as fout:
           for line in fin:
-            fout.write(line.replace('STAGE', guest).replace('POSE', '%s%02d' %(comp, int(win))))
+              fout.write(line.replace('STAGE', guest).replace('POSE', '%s%02d' %(comp, int(win))))
+      with open('../run_files/SLURMM-Am', "rt") as fin:
+        with open("./SLURMM-run", "wt") as fout:
+          for line in fin:
+              fout.write(line.replace('STAGE', guest).replace('POSE', '%s%02d' %(comp, int(win))))
 
     os.chdir('../')
     

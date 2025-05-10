@@ -7,7 +7,7 @@
 # Calculation definitions
 
 host = host-cb7                      # Choose host name
-guest_list = [guest-1]       # Choose list of guest names
+guest_list = [guest-1,guest-3,guest-5]       # Choose list of guest names
 
 # Guest residue name
 
@@ -31,13 +31,15 @@ components = [ e v ]                # Used with custom option for fe_type
 
 release_eq = [ 50.0 25.0 0.00 ]   # Equilibrium gradual release weights
 
-attach_rest = [ 0.00 0.20 0.40 0.80 1.60 2.40 4.00 5.50 8.65 11.80 18.10 24.40 37.00 49.60 74.80 100.00 ]   # Restraints attach/release weights
+attach_rest = [ 0.00 0.10 0.24 0.56 1.33 3.16 7.50 17.78 42.17 100.0 ]   # Short attach/release weights
 
-lambdas = [ 0.0001 0.02 0.04 0.06 0.08 0.10  0.15  0.20  0.25  0.30  0.40  0.50  0.60  0.70 0.75 0.80 0.85 0.90 0.92 0.94 0.96 0.98 0.9999 ] # MBAR
-
-#lambdas = [ 0.00922 0.04794 0.11505 0.20634 0.31608 0.43738 0.56262 0.68392 0.79366 0.88495 0.95206 0.99078 ] # TI 
+#lambdas = [ 0.0001 0.02 0.04 0.06 0.08 0.10  0.15  0.20  0.25  0.30  0.40  0.50  0.60  0.70 0.75 0.80 0.85 0.90 0.92 0.94 0.96 0.98 0.9999 ] # MBAR
 
 # Additional variables for analysis 
+
+dec_int = ti             # Integration method for double decoupling (MBAR or TI with Gaussian quadrature)
+
+ti_points = 12                                # Number of TI-GQ points
 
 blocks = 5               # Number of blocks for block data analysis
 
@@ -100,12 +102,6 @@ e_itera2        =   800       # Number of iterations for component e (production
 
 v_itera1        =   400       # Number of iterations for component v (equilibrium)   
 v_itera2        =   800       # Number of iterations for component v (production) 
-
-w_itera1        =   200       # Number of iterations for component w (equilibrium)   
-w_itera2        =   400       # Number of iterations for component w (production) 
-
-f_itera1        =   200       # Number of iterations for component f (equilibrium)   
-f_itera2        =   400       # Number of iterations for component f (production) 
 
 itera_steps     =   500       # Number of steps per iteration (total steps will be the number of iterations multiplied by this number)
 

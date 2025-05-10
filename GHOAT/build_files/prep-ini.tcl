@@ -1,3 +1,6 @@
+lappend auto_path ./orient 
+lappend auto_path ./la1.0
+
 mol load pdb hhhh-gggg.pdb
 mol load pdb dum.pdb
 

@@ -57,7 +57,7 @@ fcn_pc = []
 fcn_lc = []
 fcn_com = []
 
-# Protein conf restraints
+# Host conf restraints
 # Open AMBER restraint file for reading 
 with open('disang'+stge+'.rest', "r") as f_in:
     lines = (line.rstrip() for line in f_in)
@@ -269,8 +269,8 @@ torsionforce.addPerTorsionParameter('k')
 torsionforce.addGlobalParameter('lambda_restraints', 1.0)
 torsionforce.setForceGroup(new_force_index)
 
-# Protein conf restraints
-print('Protein conformational restraints:')
+# Host conf restraints
+print('Host conformational restraints:')
 print('')
 for i in range(0, len(atoms_pc)):
     if len(atoms_pc[i]) == 2:

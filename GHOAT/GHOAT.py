@@ -10,6 +10,7 @@ from lib import build
 from lib import scripts 
 from lib import setup
 from lib import analysis
+import numpy as np
 
 ion_def = []
 guest_list = []
@@ -51,7 +52,8 @@ final_host_num = 1
 buffer_z = 0
 num_waters = 0
 ion_conc = 0.0
-software = 'amber20'
+software = 'amber'
+dlambda = 0.001
 
 a_itera1 = 0
 a_itera2 = 0
@@ -74,6 +76,7 @@ ntwe = '0'
 ntwx = '2500'
 cut = '9.0'
 barostat = '2'
+ti_points = 0
 
 # Read arguments that define input file and stage
 if len(sys.argv) < 5:
@@ -210,6 +213,8 @@ for i in range(0, len(lines)):
             else:
                 print('Free energy type not recognized, please choose all, rest (only restraints) or sdr (simultaneous decoupling/recoupling), or custom')
                 sys.exit(1)
+        elif lines[i][0] == 'ti_points':
+            ti_points = scripts.check_input('int', lines[i][1], input_file, lines[i][0])
         elif lines[i][0] == 'dec_int':
             if lines[i][1].lower() == 'mbar':
                 dec_int = lines[i][1].lower()
@@ -348,10 +353,10 @@ for i in range(0, len(lines)):
         elif lines[i][0] == 'software':
             if lines[i][1].lower() == 'openmm':
                 software = lines[i][1].lower()
-            elif lines[i][1].lower() == 'amber20':
+            elif lines[i][1].lower() == 'amber':
                 software = lines[i][1].lower()
             else:
-                print('Simulation software not recognized, please choose openmm or amber20')
+                print('Simulation software not recognized, please choose openmm or amber')
                 sys.exit(1)
 
 
@@ -373,7 +378,7 @@ if fe_type == 'rest':
 elif fe_type == 'sdr':
   components = ['e', 'v'] 
 elif fe_type == 'all':
-  components = ['a', 'c', 'r', 'l', 't', 'e', 'v'] 
+  components = ['a', 'l', 't', 'e', 'v', 'c', 'r'] 
 
 # Create restraint definitions
 rest = [rec_dihcf_force, rec_discf_force, lig_distance_force, lig_angle_force, lig_dihcf_force, rec_com_force, lig_com_force]
@@ -399,12 +404,58 @@ dic_steps2['v'] = v_steps2
 dic_steps1['e'] = e_steps1
 dic_steps2['e'] = e_steps2
 
+# Define number of steps for all stages
+dic_itera1 = {}
+dic_itera2 = {}
+dic_itera1['a'] = a_itera1
+dic_itera2['a'] = a_itera2
+dic_itera1['l'] = l_itera1
+dic_itera2['l'] = l_itera2
+dic_itera1['t'] = t_itera1
+dic_itera2['t'] = t_itera2
+dic_itera1['c'] = c_itera1
+dic_itera2['c'] = c_itera2
+dic_itera1['r'] = r_itera1
+dic_itera2['r'] = r_itera2
+dic_itera1['v'] = v_itera1
+dic_itera2['v'] = v_itera2
+dic_itera1['e'] = e_itera1
+dic_itera2['e'] = e_itera2
+
 # Organize guests
 for i in range(0, len(guest_list)):
   guest_def.append(guest_list[i])
 
 for i in range(0, len(guest_list_code)):
   code_def.append(guest_list_code[i])
+
+
+# Obtain Gaussian Quadrature lambdas and weights
+
+if dec_int == 'ti':
+  if ti_points != 0:
+    lambdas = []
+    weights = []
+    x,y = np.polynomial.legendre.leggauss(ti_points)
+    # Adjust Gaussian lambdas
+    for i in range(0, len(x)):
+      lambdas.append(float((x[i]+1)/2))
+    # Adjust Gaussian weights
+    for i in range(0, len(y)):
+      weights.append(float(y[i]/2))
+  else:
+    print('Wrong input! Please choose a positive integer for the ti_points variable when using the TI-GQ method')
+    sys.exit(1)
+  print('lambda values:', lambdas)
+  print('Gaussian weights:', weights)
+elif dec_int == 'mbar':
+  if lambdas == []:
+    print('Wrong input! Please choose a set of lambda values when using the MBAR method')
+    sys.exit(1)
+  if ti_points != 0:
+    print('Wrong input! Do not define the ti_points variable when applying the MBAR method, instead choose a set of lambda values')
+    sys.exit(1)
+  print('lambda values:', lambdas)
 
 
 # Adjust components and windows for OpenMM
@@ -634,13 +685,13 @@ elif stage == 'analysis':
   if software == 'openmm':
     for i in range(0, len(guest_def)):
       guest = guest_def[i]
-      analysis.fe_openmm(components, temperature, guest, rest)
+      analysis.fe_openmm(components, temperature, guest, rest, attach_rest, lambdas, guest_rot, dic_itera1, dic_itera2, itera_steps, dt, dlambda, dec_int, weights, blocks, ti_points)
       os.chdir('../../')
   else:
   # Free energies MBAR/TI and analytical calculations
     for i in range(0, len(guest_def)):
       guest = guest_def[i]
-      analysis.fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dec_int, rest, guest_rot)
+      analysis.fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dec_int, rest, guest_rot, dic_steps1, dic_steps2, dt)
       os.chdir('../../')
 
 # Convert equilibration folders to openmm
@@ -669,18 +720,29 @@ if software == 'openmm' and stage == 'equil':
         shutil.copy(file, './')
       for file in glob.glob('../'+guest+'-amber/disang*'):
         shutil.copy(file, './')
-      fin = open('../../run_files/PBS-equil-op', "rt")
-      data = fin.read()
-      data = data.replace('RANGE', '%02d' %rng).replace('POSE', guest)
-      fin.close()
-      fin = open('PBS-equil', "wt")
-      fin.write(data)
-      fin.close()
+      for file in glob.glob('../'+guest+'-amber/build*'):
+        shutil.copy(file, './')
+      for file in glob.glob('../'+guest+'-amber/tleap_solvate*'):
+        shutil.copy(file, './')
       fin = open('../../run_files/local-equil-op.bash', "rt")
       data = fin.read()
       data = data.replace('RANGE', '%02d' %rng)
       fin.close()
-      fin = open('local-equil.bash', "wt")
+      fin = open('run-local.bash', "wt")
+      fin.write(data)
+      fin.close()
+      fin = open('../../run_files/PBS-Op', "rt")
+      data = fin.read()
+      data = data.replace('STAGE', stage).replace('POSE', guest)
+      fin.close()
+      fin = open('PBS-run', "wt")
+      fin.write(data)
+      fin.close()
+      fin = open('../../run_files/SLURMM-Op', "rt")
+      data = fin.read()
+      data = data.replace('STAGE', stage).replace('POSE', guest)
+      fin.close()
+      fin = open('SLURMM-run', "wt")
       fin.write(data)
       fin.close()
       for j in range(0, len(release_eq)):
@@ -718,23 +780,6 @@ if software == 'openmm' and stage == 'fe':
   Input = lambdas_rest
   lambdas_rest = ['{:.5f}'.format(elem) for elem in Input]
 
-  # Define number of steps for all stages
-  dic_itera1 = {}
-  dic_itera2 = {}
-  dic_itera1['a'] = a_itera1
-  dic_itera2['a'] = a_itera2
-  dic_itera1['l'] = l_itera1
-  dic_itera2['l'] = l_itera2
-  dic_itera1['t'] = t_itera1
-  dic_itera2['t'] = t_itera2
-  dic_itera1['c'] = c_itera1
-  dic_itera2['c'] = c_itera2
-  dic_itera1['r'] = r_itera1
-  dic_itera2['r'] = r_itera2
-  dic_itera1['v'] = v_itera1
-  dic_itera2['v'] = v_itera2
-  dic_itera1['e'] = e_itera1
-  dic_itera2['e'] = e_itera2
   # Start script
 
   print('')
@@ -765,17 +810,24 @@ if software == 'openmm' and stage == 'fe':
           os.chdir(comp+'-comp')
           itera1 = dic_itera1[comp]
           itera2 = dic_itera2[comp]
-          shutil.copy('../../../../run_files/local-rest-op.bash', './local-rest.bash')
-          fin = open('../../../../run_files/PBS-rest-op', "rt")
+          shutil.copy('../../../../run_files/local-rest-op.bash', './run-local.bash')
+          fin = open('../../../../run_files/PBS-Op', "rt")
           data = fin.read()
-          data = data.replace('CMPN', comp).replace('POSE', guest_def[i])
+          data = data.replace('POSE', comp).replace('STAGE', guest_def[i])
           fin.close()
-          fin = open('PBS-'+comp, "wt")
+          fin = open('PBS-run', "wt")
+          fin.write(data)
+          fin.close()
+          fin = open('../../../../run_files/SLURMM-Op', "rt")
+          data = fin.read()
+          data = data.replace('POSE', comp).replace('STAGE', guest_def[i])
+          fin.close()
+          fin = open('SLURMM-run', "wt")
           fin.write(data)
           fin.close()
           fin = open('../../../../lib/rest.py', "rt")
           data = fin.read()
-          data = data.replace('LAMBDAS', '[%s]' % ' , '.join(map(str, lambdas_rest))).replace('LIG', mol.upper()).replace('TMPRT', str(temperature)).replace('TSTP', str(dt)).replace('SPITR', str(itera_steps)).replace('PRIT', str(itera2)).replace('EQIT', str(itera1)).replace('ITCH', str(itcheck)).replace('GAMMA_LN', str(gamma_ln)).replace('CMPN', str(comp)).replace('CTF', cut)
+          data = data.replace('LAMBDAS', '[%s]' % ' , '.join(map(str, lambdas_rest))).replace('LIG', mol.upper()).replace('TMPRT', str(temperature)).replace('TSTP', str(dt)).replace('SPITR', str(itera_steps)).replace('PRIT', str(itera2)).replace('EQIT', str(itera1)).replace('ITCH', str(itcheck)).replace('GAMMA_LN', str(gamma_ln)).replace('CMPN', str(comp)).replace('CTF', cut).replace('BLCKS', str(blocks))
           if hmr == 'yes':
             data = data.replace('PRMFL', 'full.hmr.prmtop')
           else:
@@ -794,25 +846,33 @@ if software == 'openmm' and stage == 'fe':
             for file in glob.glob('../../../../'+stage+'/'+guest_def[i]+'/rest/t00/full*'):
               shutil.copy(file, './')
       elif comp == 'e' or comp == 'v':
-          if not os.path.exists('sdr'):
-            os.makedirs('sdr')
-          os.chdir('sdr')
+        if not os.path.exists('sdr'):
+          os.makedirs('sdr')
+        os.chdir('sdr')
+        if dec_int == 'mbar':
           if not os.path.exists(comp+'-comp'):
             os.makedirs(comp+'-comp')
           os.chdir(comp+'-comp')
           itera1 = dic_itera1[comp]
           itera2 = dic_itera2[comp]
-          shutil.copy('../../../../run_files/local-sdr-op.bash', './local-sdr.bash')
-          fin = open('../../../../run_files/PBS-sdr-op', "rt")
+          shutil.copy('../../../../run_files/local-sdr-op.bash', './run-local.bash')
+          fin = open('../../../../run_files/PBS-Op', "rt")
           data = fin.read()
-          data = data.replace('CMPN', comp).replace('POSE', guest_def[i])
+          data = data.replace('POSE', comp).replace('STAGE', guest_def[i])
           fin.close()
-          fin = open('PBS-'+comp, "wt")
+          fin = open('PBS-run', "wt")
+          fin.write(data)
+          fin.close()
+          fin = open('../../../../run_files/SLURMM-Op', "rt")
+          data = fin.read()
+          data = data.replace('POSE', comp).replace('STAGE', guest_def[i])
+          fin.close()
+          fin = open('SLURMM-run', "wt")
           fin.write(data)
           fin.close()
           fin = open('../../../../lib/sdr.py', "rt")
           data = fin.read()
-          data = data.replace('LAMBDAS', '[%s]' % ' , '.join(map(str, lambdas))).replace('LIG', mol.upper()).replace('TMPRT', str(temperature)).replace('TSTP', str(dt)).replace('SPITR', str(itera_steps)).replace('PRIT', str(itera2)).replace('EQIT', str(itera1)).replace('ITCH', str(itcheck)).replace('GAMMA_LN', str(gamma_ln)).replace('CMPN', str(comp)).replace('CTF', cut)
+          data = data.replace('LAMBDAS', '[%s]' % ' , '.join(map(str, lambdas))).replace('LIG', mol.upper()).replace('TMPRT', str(temperature)).replace('TSTP', str(dt)).replace('SPITR', str(itera_steps)).replace('PRIT', str(itera2)).replace('EQIT', str(itera1)).replace('ITCH', str(itcheck)).replace('GAMMA_LN', str(gamma_ln)).replace('CMPN', str(comp)).replace('CTF', cut).replace('BLCKS', str(blocks))
           if hmr == 'yes':
             data = data.replace('PRMFL', 'full.hmr.prmtop')
           else:
@@ -825,6 +885,75 @@ if software == 'openmm' and stage == 'fe':
           shutil.copy('../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/cv.in', './')
           for file in glob.glob('../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/full*'):
             shutil.copy(file, './')
+          for file in glob.glob('../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/vac*'):
+            shutil.copy(file, './')
+          for file in glob.glob('../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/tleap_solvate*'):
+            shutil.copy(file, './')
+          for file in glob.glob('../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/build*'):
+            shutil.copy(file, './')
+          for file in glob.glob('../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/full*'):
+            shutil.copy(file, './')
+        elif dec_int == 'ti':
+          if not os.path.exists(comp+'-comp'):
+            os.makedirs(comp+'-comp')
+          os.chdir(comp+'-comp')
+          itera1 = int(dic_itera1[comp]*itera_steps)
+          itera2 = int(dic_itera2[comp]/2)
+          for k in range(0, len(lambdas)):
+            if not os.path.exists('%s%02d' %(comp, int(k))):
+              os.makedirs('%s%02d' %(comp, int(k)))
+            os.chdir('%s%02d' %(comp, int(k)))
+            shutil.copy('../../../../../run_files/local-sdr-op-ti.bash', './run-local.bash')
+            fin = open('../../../../../run_files/SLURMM-Op', "rt")
+            data = fin.read()
+            data = data.replace('STAGE', guest_def[i]).replace('POSE', '%s%02d' %(comp, int(k)))
+            fin.close()
+            fin = open("SLURMM-run", "wt")
+            fin.write(data)
+            fin.close()
+            fin = open('../../../../../run_files/PBS-Op', "rt")
+            data = fin.read()
+            data = data.replace('STAGE', guest_def[i]).replace('POSE', '%s%02d' %(comp, int(k)))
+            fin.close()
+            fin = open("PBS-run", "wt")
+            fin.write(data)
+            fin.close()
+            fin = open('../../../../../lib/equil-sdr.py', "rt")
+            data = fin.read()
+            data = data.replace('LBD0', '%8.6f' % lambdas[k]).replace('LIG', mol.upper()).replace('TMPRT', str(temperature)).replace('TSTP', str(dt)).replace('SPITR', str(itera_steps)).replace('PRIT', str(itera2)).replace('EQIT', str(itera1)).replace('ITCH', str(itcheck)).replace('GAMMA_LN', str(gamma_ln)).replace('CMPN', str(comp)).replace('CTF', cut)
+            if hmr == 'yes':
+              data = data.replace('PRMFL', 'full.hmr.prmtop')
+            else:
+              data = data.replace('PRMFL', 'full.prmtop')
+            fin.close()
+            fin = open('equil-sdr.py', "wt")
+            fin.write(data)
+            fin.close()
+            fin = open('../../../../../lib/sdr-ti.py', "rt")
+            data = fin.read()
+            # "Split" initial lambda into two close windows 
+            lambda1 = float(lambdas[k] - dlambda/2)
+            lambda2 = float(lambdas[k] + dlambda/2)
+            data = data.replace('LBD1', '%8.6f' % lambda1).replace('LBD2', '%8.6f' % lambda2).replace('LIG', mol.upper()).replace('TMPRT', str(temperature)).replace('TSTP', str(dt)).replace('SPITR', str(itera_steps)).replace('PRIT', str(itera2)).replace('EQIT', str(itera1)).replace('ITCH', str(itcheck)).replace('GAMMA_LN', str(gamma_ln)).replace('CMPN', str(comp)).replace('CTF', cut).replace('BLCKS', str(blocks))
+            if hmr == 'yes':
+              data = data.replace('PRMFL', 'full.hmr.prmtop')
+            else:
+              data = data.replace('PRMFL', 'full.prmtop')
+            fin.close()
+            fin = open('sdr-ti.py', "wt")
+            fin.write(data)
+            fin.close()
+            shutil.copy('../../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/disang.rest', './')
+            shutil.copy('../../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/cv.in', './')
+            for file in glob.glob('../../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/full*'):
+              shutil.copy(file, './')
+            for file in glob.glob('../../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/vac*'):
+              shutil.copy(file, './')
+            for file in glob.glob('../../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/tleap_solvate*'):
+              shutil.copy(file, './')
+            for file in glob.glob('../../../../../'+stage+'/'+guest_def[i]+'/sdr/v00/build*'):
+              shutil.copy(file, './')
+            os.chdir('../')
       os.chdir('../../')
     # Clean up amber windows
     dirpath = os.path.join('rest', 't00')

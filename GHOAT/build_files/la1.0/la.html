@@ -1,0 +1,1917 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./la_files/filelist.xml">
+<title>The Hume Linear Algebra Tcl Package</title>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>Edward C. Hume, III</o:Author>
+  <o:LastAuthor>Edward C. Hume, III</o:LastAuthor>
+  <o:Revision>50</o:Revision>
+  <o:TotalTime>3209</o:TotalTime>
+  <o:Created>2001-07-08T13:41:00Z</o:Created>
+  <o:LastSaved>2001-07-12T23:59:00Z</o:LastSaved>
+  <o:Pages>15</o:Pages>
+  <o:Words>4856</o:Words>
+  <o:Characters>27681</o:Characters>
+  <o:Company>Hume Integration Software</o:Company>
+  <o:Lines>230</o:Lines>
+  <o:Paragraphs>55</o:Paragraphs>
+  <o:CharactersWithSpaces>33994</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:View>Print</w:View>
+  <w:ActiveWritingStyle Lang="EN-US" VendorID="64" DLLVersion="131077"
+   NLCheck="1">1</w:ActiveWritingStyle>
+ </w:WordDocument>
+</xml><![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+@font-face
+	{font-family:"MS Mincho";
+	panose-1:2 2 6 9 4 2 5 8 3 4;
+	mso-font-alt:"\FF2D\FF33 \660E\671D";
+	mso-font-charset:128;
+	mso-generic-font-family:modern;
+	mso-font-pitch:fixed;
+	mso-font-signature:-1610612033 1757936891 16 0 131231 0;}
+@font-face
+	{font-family:"\@MS Mincho";
+	panose-1:2 2 6 9 4 2 5 8 3 4;
+	mso-font-charset:128;
+	mso-generic-font-family:modern;
+	mso-font-pitch:fixed;
+	mso-font-signature:-1610612033 1757936891 16 0 131231 0;}
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:3.0pt;
+	margin-left:0in;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:1;
+	font-size:16.0pt;
+	font-family:Arial;
+	mso-font-kerning:16.0pt;}
+h2
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:3.0pt;
+	margin-left:0in;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:2;
+	font-size:14.0pt;
+	font-family:Arial;
+	font-style:italic;}
+h3
+	{mso-style-next:Normal;
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:3.0pt;
+	margin-left:0in;
+	mso-pagination:widow-orphan;
+	page-break-after:avoid;
+	mso-outline-level:3;
+	font-size:13.0pt;
+	font-family:Arial;}
+p.MsoBodyTextIndent, li.MsoBodyTextIndent, div.MsoBodyTextIndent
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"MS Mincho";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+p.MsoPlainText, li.MsoPlainText, div.MsoPlainText
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Courier New";
+	mso-fareast-font-family:"MS Mincho";}
+pre
+	{margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Courier New";
+	mso-fareast-font-family:"Courier New";}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 65.95pt 1.0in 65.95pt;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+</head>
+
+<body lang=EN-US link=blue vlink=purple style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<h1><span style='mso-fareast-font-family:"MS Mincho"'>The Hume Linear Algebra
+Tcl Package, La<o:p></o:p></span></h1>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h2><a name=features><span style='mso-fareast-font-family:"MS Mincho"'>Feature</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> Summary<o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The
+package consists of Tcl procedures for the manipulation of vectors and
+matrices.<span style="mso-spacerun: yes">  </span>The functionality spans
+scaling, normalization, concatenation by rows or columns, subsetting by rows or
+columns, formatted printing, transpose, dot product, matrix multiplication,
+solution of linear equation sets, matrix inversion, eigenvalue/eigenvector
+solutions,<span style="mso-spacerun: yes">  </span>singular value
+decomposition, and solution of linear least squares.<span style="mso-spacerun:
+yes">  </span>The singular value decomposition can be used to perform the
+principle components analysis of multivariate statistical process control and
+avoid the possibly ill-conditioned multiplication of the XX<sup>t </sup><span
+style="mso-spacerun: yes"> </span>matrix of<span style="mso-spacerun: yes"> 
+</span>observations.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The user can
+mix vectors and arrays in linear algebra operations.<span style="mso-spacerun:
+yes">  </span>The logic does reasonable conversion of types.<span
+style="mso-spacerun: yes">  </span>Sophisticated operations such as evaluating
+a custom procedure against each element of a matrix are easily possible.<span
+style="mso-spacerun: yes">  </span>Data is represented as ordinary Tcl list
+variables so that the usual commands of Tcl are useable, and efficient access
+to the data elements using compiled extensions is possible.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>This
+document and the package are ©Copyright 2001, Hume Integration Software.<span
+style="mso-spacerun: yes">  </span>You may use the package without licensing
+fees according to the <a href="#_License_Terms">License Terms</a>.<o:p></o:p></span></p>
+
+<h1><a name=userguide><span style='mso-fareast-font-family:"MS Mincho"'>User
+Guide</span></a><span style='mso-fareast-font-family:"MS Mincho"'><o:p></o:p></span></h1>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h2><a name=Obtaining><span style='mso-fareast-font-family:"MS Mincho"'>Obtaining
+the Package</span></a><span style='mso-fareast-font-family:"MS Mincho"'><o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The
+package may be obtained from the webpage <a href="http://www.hume.com/la"
+target="_blank">http://www.hume.com/la</a>.<span style="mso-spacerun: yes"> 
+</span>The package uses the &quot;string is&quot; Tcl command which was new
+with Tcl 8.1.<span style="mso-spacerun: yes">  </span>So unless you are
+comfortable making minor changes to the Tcl source code, you should only use
+the package with Tcl version 8.1 and newer.<span style="mso-spacerun: yes"> 
+</span>The version 1.0 package only consists of text files, there are no binary
+files.<span style="mso-spacerun: yes">  </span>The only difference between the
+Windows archive and the POSIX archive is the difference in line feed / carriage
+return characters at the end of each line of text.<span style="mso-spacerun:
+yes">  </span>The package is distributed as zip archives.<span
+style="mso-spacerun: yes">  </span>You are expected to use your own software to
+unpack the archive files.<span style="mso-spacerun: yes">  </span><o:p></o:p></span></p>
+
+<h2><a name=Installation><span style='mso-fareast-font-family:"MS Mincho"'>Installation</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'><o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The
+package is installed by extracting from the zip archive file, the package
+directory and files.<span style="mso-spacerun: yes">  </span>The package
+directory should be added into the base directory of the Tcl runtime libraries.<span
+style="mso-spacerun: yes">  </span>So if your Tcl runtime library directory is
+/usr/local/lib/tcl8.3, copy or extract the la1.0 directory and files to
+/usr/local/lib so that you have the directory /usr/local/lib/la1.0 and the
+package files are found as /usr/local/lib/la1.0/*.* .<span style="mso-spacerun:
+yes">  </span>The Tcl code should be compatible with Tcl version 8.1 and later
+for any architecture, but we have only tested it with Tcl 8.3.<span
+style="mso-spacerun: yes">   </span>You can run the package regression tests by
+navigating to the package directory and sourcing the file “la.test”.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h2><a name=runtime><span style='mso-fareast-font-family:"MS Mincho"'>Runtime </span></a><span
+style='mso-fareast-font-family:"MS Mincho"'>Usage<o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The software
+is found and made useable by your Tcl/Tk interpreter after you execute “package
+require La”.<span style="mso-spacerun: yes">  </span>You typically import the
+package procedure names into your global namespace to save yourself from having
+to qualify the procedure names using the package name.<span
+style="mso-spacerun: yes">  </span>So typical initialization code looks like:<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoPlainText style='margin-left:.5in'>% package require La</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>1.0</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>% namespace import La::*</p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h2><a name=Operand><span style='mso-fareast-font-family:"MS Mincho"'>Operand</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> Formats<o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The
+package uses ordinary Tcl variables to represent scalars, vectors, and
+arrays.<span style="mso-spacerun: yes">  </span>This means that the ordinary
+Tcl commands are useable.<span style="mso-spacerun: yes">  </span>For example,
+the Tcl set command can be used to copy a matrix:<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoPlainText style='margin-left:.5in'>set A [mident 5]<span
+style="mso-spacerun: yes">  </span>;# A is assigned a 5x5 identity matrix </p>
+
+<p class=MsoPlainText style='margin-left:.5in'>set B $A<span
+style="mso-spacerun: yes">          </span>;# B is assigned the value of A</p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><span
+style="mso-spacerun: yes"> </span><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Tcl list
+formats are used for better performance than arrays and for better
+compatibility with C/C++ code.<span style="mso-spacerun: yes">  
+</span>Dimension information is added in a simple way at the front of the list,
+for vectors, matrices, and higher dimensional variables.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>Scalar Format<span
+style="mso-spacerun: yes">  </span><o:p></o:p></span></h3>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>If the
+list length of a variable is 1 the operand is a scalar, eg.,
+&quot;6.02e23&quot;.<span style="mso-spacerun: yes">  </span>The Tcl command
+llength can be used to determine the list length.<o:p></o:p></span></p>
+
+<h3>Vector Format</h3>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoBodyTextIndent style='margin-left:0in'>A vector of length N has the
+representation as a Tcl list of:</p>
+
+<p class=MsoBodyTextIndent><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoPlainText style='margin-left:1.0in'>2 N 0 v[0] v[1] v[2] ... v[N-1]</p>
+
+<p class=MsoPlainText style='margin-left:1.0in'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The first
+element in the list, the value 2, signifies that there are two additional
+elements of size information; the number of rows, and the number of
+columns.<span style="mso-spacerun: yes">  </span>When the number of columns is
+0, the operand is defined to be a</span> one dimensional vector.<span
+style="mso-spacerun: yes">  </span>So the Tcl list sequence of {2 4 0 1 2 3 4}
+represents the vector <span style='font-size:10.0pt'>{1 2 3 4}</span>.<span
+style="mso-spacerun: yes">  </span>A vector of length N has the same number of
+elements as an Nx1 or 1xN matrix so they can be efficiently converted in place,
+and indexing operations are simplified.</p>
+
+<p class=MsoBodyTextIndent><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoBodyTextIndent style='margin-left:0in'>The index into the
+underlying Tcl list for vector <span style='font-size:10.0pt;font-family:"Courier New";
+mso-fareast-font-family:"Times New Roman"'>v[i]</span> is</p>
+
+<p class=MsoPlainText><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoPlainText style='margin-left:1.0in'>set index [expr {3 + $i}]</p>
+
+<p class=MsoPlainText style='margin-left:1.0in'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>A vector
+of length N is promoted to an N rows by 1 column matrix if used in an operation
+where a matrix argument is expected.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The
+transpose of a vector of length N is a 1 row by N columns matrix.<o:p></o:p></span></p>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>Matrix Format<o:p></o:p></span></h3>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The Tcl
+list data used to represent two dimensional matrix a[R,C], has the format:<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoPlainText style='margin-left:.5in'>2 R C a[0,0] a[0,1] a[0,2] ...
+a[0,C-1] \</p>
+
+<p class=MsoPlainText style='margin-left:1.0in'>a[1,0] a[1,1] ... a[1,C-1] \</p>
+
+<p class=MsoPlainText style='margin-left:1.0in'>... a[R-1,C-1]<span
+style="mso-spacerun: yes">  </span></p>
+
+<p class=MsoPlainText style='margin-left:1.0in'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>where R is
+the number of rows, and C is the number of columns, and the backslash character
+has been used to indicate that the multiple lines of text constitute a single
+list sequence.<span style="mso-spacerun: yes">  </span>The format itself is
+independent of whether the user thinks that indexing starts from 0 or 1.<span
+style="mso-spacerun: yes">  </span>In Tcl, indexing of lists always starts with
+0 so we have chosen to consistently start indexing with 0.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>For a
+valid matrix, both the number of rows and the number of columns are positive
+integers.<span style="mso-spacerun: yes">  </span>The data elements following
+the {2 R C} dimension information can also be thought of as first row, second
+row, …, last row.<span style="mso-spacerun: yes">  </span>The index into the
+underlying Tcl list for </span><span style='font-size:10.0pt;font-family:"Courier New"'>a[i,j]</span><span
+style='mso-fareast-font-family:"MS Mincho"'> is:<o:p></o:p></span></p>
+
+<p class=MsoPlainText style='margin-left:.5in'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoPlainText style='margin-left:.5in'>set index [expr {3 + $i * $C +
+$j}]</p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><span
+style="mso-spacerun: yes">  </span><o:p></o:p></span></p>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>Higher Dimensions<o:p></o:p></span></h3>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>If the
+first element in a Tcl list is &gt; 2, the package assumes the list represents
+a higher dimensional operand.<span style="mso-spacerun: yes">  </span>Logic for
+higher dimension operands is not currently part of the package.<span
+style="mso-spacerun: yes">  </span><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The
+candidate structure for 3-D data is:<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoPlainText style='margin-left:.5in'>3 P R C a[0,0,0] a[0,0,1]
+a[0,0,2] ... a[0,0,C-1] ... a[P-1,R-1,C-1]</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>where
+P=planes, R=rows, C=columns.<span style="mso-spacerun: yes">  </span>An
+intuitive view is that the data is multiple 2-D planes of rows and columns
+listed in order from the 0 plane to the P-1 plane.<span style="mso-spacerun:
+yes">  </span><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The index
+into the underlying Tcl list for </span>a[i,j,k]<span style='mso-fareast-font-family:
+"MS Mincho"'> is<o:p></o:p></span></p>
+
+<p class=MsoPlainText style='margin-left:.5in'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoPlainText style='margin-left:.5in'>set index [expr 4 + $i*$R*$c +
+$j*$c + $k]</p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>Operand Examples<o:p></o:p></span></h3>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoPlainText>set pi 3.1415<span style='mso-tab-count:1'>      </span><span
+style='mso-tab-count:1'>      </span>;# a scalar</p>
+
+<p class=MsoPlainText>set v {2 1 0 3.1415}<span style="mso-spacerun: yes">   
+</span>;# v[1] with value 3.1415</p>
+
+<p class=MsoPlainText># vectors should use the first dimension of 2</p>
+
+<p class=MsoPlainText>set v {2 0 1 3.1415}<span style="mso-spacerun: yes">   
+</span>;# error - vector should use first dimension only</p>
+
+<p class=MsoPlainText>set v {2 3 0 1 2 3 4}<span style="mso-spacerun: yes">  
+</span>;# error - vector has an additional element</p>
+
+<p class=MsoPlainText>set m {2 2 3 1 2 3 4 5 6}<span style="mso-spacerun:
+yes">  </span>;# m[2,3]</p>
+
+<p class=MsoPlainText>show $m</p>
+
+<p class=MsoPlainText>1 2 3</p>
+
+<p class=MsoPlainText>4 5 6</p>
+
+<p class=MsoPlainText>show [transpose $m]</p>
+
+<p class=MsoPlainText>1 4</p>
+
+<p class=MsoPlainText>2 5</p>
+
+<p class=MsoPlainText>3 6</p>
+
+<p class=MsoPlainText><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<h2><a name=Passing><span style='mso-fareast-font-family:"MS Mincho"'>Argument</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> Passing By Value and By Reference <o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>There are
+typically two procedures defined for an algorithm.<span style="mso-spacerun:
+yes">  </span>A plainly named procedure such as &quot;transpose&quot;, and
+another procedure with the suffix <b>_br</b> such as
+&quot;transpose_br&quot;.<span style="mso-spacerun: yes">  </span>The plainly
+named procedures expect their data arguments to be passed by value, which is
+the usual argument passing convention with Tcl programming.<span
+style="mso-spacerun: yes">  </span>The plain calls are designed for ease of
+interactive use, and in general have been coded to perform more conversion of
+arguments, more error checking, and to trade off efficiency for
+convenience.<span style="mso-spacerun: yes">  </span>The <b>_br</b> procedures
+are intended for efficent use, with the <b>_br</b> indicating that data
+arguments are passed &quot;By Reference&quot; to avoid copying the data.<span
+style="mso-spacerun: yes">  </span>In Tcl, to pass by reference means that the
+caller has the data in a named variable, and the caller passes the name of the
+variable instead of a copy of the data.<span style="mso-spacerun: yes"> 
+</span>You can see that passing by reference is more efficient for larger
+vectors and arrays.<span style="mso-spacerun: yes">  </span>The <b>_br</b>
+procedures in general assume that the data arguments have the correct
+structure, so the caller may need to use the <b>promote</b>, <b>demote</b>, and
+<b>transpose</b> calls to prepare arguments for a <b>_br</b> call.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h2><a name=performance><span style='mso-fareast-font-family:"MS Mincho"'>A
+Note on Performance</span></a><span style='mso-fareast-font-family:"MS Mincho"'><o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Number
+crunching in Tcl?<span style="mso-spacerun: yes">  </span>The conventional
+wisdom is that computationally intensive tasks such as numerical analysis are
+high on the list of things that you should not do in a scripting language.<span
+style="mso-spacerun: yes">   </span>It is true that you can obtain better
+performance using a traditional compiled language such as Fortran, or C
+code.<span style="mso-spacerun: yes">   </span>But nowadays, the performance
+gain that you will obtain by switching languages is similar to the performance
+gain you will see between a new computer and a computer from two years
+ago.<span style="mso-spacerun: yes">   </span>In many situations, the actual
+time spent processing numbers is a small portion of the overall project.<span
+style="mso-spacerun: yes">  </span>The time it takes the researcher to explore
+his data, decide on the desired approach, and develop the software for his
+desired analysis is the only performance time that really matters.<span
+style="mso-spacerun: yes">   </span>Here, a high-level development environment
+such as Tcl or MATLAB wins over C++ or Java hands down.<span
+style="mso-spacerun: yes">   </span>Actual performance numbers for the Tcl
+package are nothing to be ashamed about.<span style="mso-spacerun: yes">  
+</span>Using a 900Mhz Pentium III notebook computer, the following times were
+obtained for inverting an NxN matrix using Gauss elimination with partial
+pivoting.<span style="mso-spacerun: yes">   </span>This is something of a worst
+case since most numerical algorithms avoid the direct inversion of a full
+matrix.<span style="mso-spacerun: yes">  </span>Often a major performance
+improvement is made by choosing a better algorithm.<o:p></o:p></span></p>
+
+<p class=MsoPlainText><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<table border=1 cellspacing=0 cellpadding=0 style='border-collapse:collapse;
+ border:none;mso-border-alt:solid windowtext .5pt;mso-padding-alt:0in 5.4pt 0in 5.4pt'>
+ <tr>
+  <td width=655 colspan=2 valign=top style='width:490.9pt;border:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Inversion
+  of an NxN matrix. <o:p></o:p></span></p>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Development
+  time for the following timed benchmark: 15 seconds.<span style="mso-spacerun:
+  yes">  </span>It worked properly on the first attempt.<span
+  style="mso-spacerun: yes">  </span>The flush and update commands are not
+  needed except to show progress before completion.<span style="mso-spacerun:
+  yes">  </span>The benchmark:<o:p></o:p></span></p>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+  <p class=MsoPlainText>% source la.tcl</p>
+  <p class=MsoPlainText>% namespace import La::*</p>
+  <p class=MsoPlainText>% foreach n {10 20 50 100} {</p>
+  <p class=MsoPlainText><span style="mso-spacerun: yes">   </span>puts [time
+  {msolve [mdingdong $n] [mident $n]}]</p>
+  <p class=MsoPlainText><span style="mso-spacerun: yes">   </span>flush stdout</p>
+  <p class=MsoPlainText><span style="mso-spacerun: yes">   </span>update</p>
+  <p class=MsoPlainText><span style="mso-spacerun: yes"> </span>}<span
+  style='font-size:12.0pt'><o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=327 valign=top style='width:245.45pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><b><span style='mso-fareast-font-family:"MS Mincho"'>Matrix
+  Dimension (N)<o:p></o:p></span></b></p>
+  </td>
+  <td width=327 valign=top style='width:245.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><b><span style='mso-fareast-font-family:"MS Mincho"'>Inversion
+  Time (seconds)<o:p></o:p></span></b></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=327 valign=top style='width:245.45pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>10<o:p></o:p></span></p>
+  </td>
+  <td width=327 valign=top style='width:245.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>0.020<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=327 valign=top style='width:245.45pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>20<o:p></o:p></span></p>
+  </td>
+  <td width=327 valign=top style='width:245.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>0.140<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=327 valign=top style='width:245.45pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>50<o:p></o:p></span></p>
+  </td>
+  <td width=327 valign=top style='width:245.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>1.973<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=327 valign=top style='width:245.45pt;border:solid windowtext .5pt;
+  border-top:none;mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>100<o:p></o:p></span></p>
+  </td>
+  <td width=327 valign=top style='width:245.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>15.43<o:p></o:p></span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Here are
+some tips for efficient coding.<span style="mso-spacerun: yes">  </span>In Tcl
+the expr command is used for the evaluation of
+numeric expressions.<span style="mso-spacerun: yes">  </span>You should almost
+always surround the arguments to <b>expr</b> with braces to prevent the Tcl
+interpreter from substituting the arguments.<span style="mso-spacerun: yes"> 
+</span>The <b>expr</b> command itself is able to substitute variable references
+directly and avoid re-interpreting their string representation.<span
+style="mso-spacerun: yes">  </span>For example:<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoPlainText style='margin-left:.5in'>set index [expr {3 + $i * $C +
+$j}]<span style="mso-spacerun: yes">   </span>;# good example</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>set index [expr 3 + $i*$C +
+$j]<span style="mso-spacerun: yes">       </span>;# less efficient example</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The
+Windows NT/Windows 2000 Tk console does not perform very well when large text
+strings are displayed.<span style="mso-spacerun: yes">  </span>You may find it
+preferable to print results by separate rows for large output sets, or to write
+large output results to a file.<span style="mso-spacerun: yes">  </span>Another
+alternative to the Windows Tk console, is to use tclsh83.exe from a command
+window.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Tcl
+maintains an internal binary representation for variable values, and computes a
+string representation for a variable value only when needed.<span
+style="mso-spacerun: yes">   </span>If your logic is inconsistent and sometimes
+treats a variable as a string, and sometimes treats it as a list of numbers,
+you can cause inefficient “shimmering” of the internal representation.<span
+style="mso-spacerun: yes">  </span>For best efficiency use list oriented
+commands to manipulate your vector and matrix variables, and don’t mix string
+oriented commands.<span style="mso-spacerun: yes">  </span>For example:<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoPlainText><span style='mso-tab-count:1'>      </span>lappend m
+$newvalue<span style="mso-spacerun: yes">      </span>;# good – lappend is a list
+oriented procedure</p>
+
+<p class=MsoPlainText><span style="mso-spacerun: yes">      </span>append m
+&quot; $newvalue&quot;<span style="mso-spacerun: yes">    </span>;# bad, this
+causes conversion to a string</p>
+
+<p class=MsoPlainText><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The last
+tip is that it is very easy to use the built-in <b>time</b>
+command to analyze actual performance of your code.<span style="mso-spacerun:
+yes">  </span><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h2><a name="pca_example"><span style='mso-fareast-font-family:"MS Mincho"'>A PCA
+Example</span></a><span style='mso-fareast-font-family:"MS Mincho"'><o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The
+package contains a worked Principle Components Analysis problem based on
+Section 6.5 of the SEMATECH/NIST Statistics Handbook, <a
+href="http://www.itl.nist.gov/div898/handbook" target="_blank">http://www.itl.nist.gov/div898/handbook</a>.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>See the
+file <a href="NIST.html" target="_blank">NIST.tcl</a>.<o:p></o:p></span></p>
+
+<h1><a name=reference><span style='mso-fareast-font-family:"MS Mincho"'>Reference</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'><o:p></o:p></span></h1>
+
+<p class=MsoPlainText><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<h2><span style='mso-fareast-font-family:"MS Mincho"'>Alphabetical Procedure
+Table<o:p></o:p></span></h2>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<table border=1 cellspacing=0 cellpadding=0 style='border-collapse:collapse;
+ border:none;mso-border-alt:solid windowtext .5pt;mso-padding-alt:0in 5.4pt 0in 5.4pt'>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><b><span style='mso-fareast-font-family:"MS Mincho"'>Procedure
+  Name(s)<o:p></o:p></span></b></p>
+  </td>
+  <td valign=top style='border:solid windowtext .5pt;border-left:none;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><b><span style='mso-fareast-font-family:"MS Mincho"'>Description<o:p></o:p></span></b></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#demote">demote, demote_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Demote
+  an Nx1 or 1xN matrix to a vector[N].<span style="mso-spacerun: yes"> 
+  </span>Demote a vector[1] to a scalar.<span style="mso-spacerun: yes"> 
+  </span>Call twice to demote a 1x1 matrix to scalar.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#dim">dim, dim_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Return
+  the dimension of the argument,<span style="mso-spacerun: yes">  </span>and to
+  some degree verify a proper format.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#dotprod">dotprod, dotprod_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Dot Product
+  = sum over i, Ai * Bi<o:p></o:p></span></p>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Can work
+  columns or rows in matrices because indexing increments are optional
+  arguments.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#join_cols">join_cols, join_cols_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Combine
+  vector or matrices as added columns.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#join_rows">join_rows, join_rows_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Combine
+  vector or matrices as added rows.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#lassign">lassign, lassign_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Replace
+  a single value in a Tcl list.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#madd">madd</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Computes
+  a new matrix or vector from the addition of corresponding elements in two
+  operands.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#madjust">madjust</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Apply a
+  scale factor and offset to the operand’s elements.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mat_binary_op">mat_binary_op, mat_binary_op_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Perform
+  binary operations such as addition on corresponding elements of vectors or
+  matrices.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mat_unary_op">mat_unary_op, mat_unary_op_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Perform
+  unary operations on elements like scaling.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mathprec">mathprec</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Returns
+  the smallest number epsilon, such that 1+epsilon &gt; 1.<o:p></o:p></span></p>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Also
+  reports on the machine radix, digits, and rounding behavior<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mcols">mcols, mcols_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Return
+  the number of columns in a matrix or vector.<span style="mso-spacerun: yes"> 
+  </span>You can use mrows and mcols to keep your software isolated from the
+  details of the data representation.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mdiag">mdiag</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Creates
+  a diagonal matrix from a vector, an Nx1 matrix, or a 1XN matrix.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mdingdong">mdingdong</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Create
+  the Ding Dong test matrix, a Cauchy matrix that is represented inexactly in
+  the machine, but very stable for inversion by elimination methods.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mdiv">mdiv</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Computes
+  a new matrix or vector from the division of corresponding elements in two
+  operands.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mevsvd">mevsvd, mevsvd_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Solve
+  for the eigenvectors and eigenvalues of a real symmetric matrix by singular
+  value decomposition.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mhilbert">mhilbert</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Create
+  the Hilbert test matrix which is notorious for being<span
+  style="mso-spacerun: yes">  </span>ill conditioned for eigenvector/eigenvalue
+  solutions.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mident">mident</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Create
+  an identity matrix of order N.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mlssvd">mlssvd</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Linear
+  least squares solution for over-determined linear equations using singular
+  value decomposition.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mmult">mmult, mmult_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Ordinary
+  matrix multiplication.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mnorms">mnorms, mnorms_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Compute
+  the means and standard deviations of each column.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mnormalize">mnormalize, mnormalize_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Normalize
+  each column by subtracting the corresponding mean and then dividing by the
+  corresponding standard deviation.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#moffset">moffset</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Add a
+  constant to the elements of an operand.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mprod">mprod</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Computes
+  a new matrix or vector from the product of corresponding elements in two
+  operands.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mrange">mrange, mrange_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Return a
+  subset of selected columns, selected rows as a new matrix.<span
+  style="mso-spacerun: yes">  </span>Also can be used to reverse the ordering
+  when the start index &gt; end index.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mround">mround, mround_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Round
+  off elements in a matrix if they are close to integers.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mrows">mrows, mrows_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Return
+  the number of rows in a matrix or vector.<span style="mso-spacerun: yes"> 
+  </span>You can use mrows and mcols to keep your software isolated from the
+  details of the data representation.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#mscale">mscale</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Multiply
+  each element in an operand by a factor.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#msolve">msolve, msolve_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Solve
+  the matrix problem Ax = p for x, where p may be multiple columns.<span
+  style="mso-spacerun: yes">  </span>When p is the identity matrix, the
+  solution x, is the inverse of A.<span style="mso-spacerun: yes">  </span>Uses
+  Gauss elimination with partial pivoting.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#msub">msub</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Computes
+  a new matrix or vector from the subtraction of corresponding elements in two
+  operands.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#msum">msum, msum_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Compute
+  the sums of each column, returning a vector or scalar result.<span
+  style="mso-spacerun: yes">  </span>Call twice to get the total sum of columns
+  and rows (set total [msum [msum $a]]).<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#msvd">msvd</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Perform
+  the Singular Value Decomposition of a matrix.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#promote">promote, promote_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Promote
+  a scalar or vector to an array.<span style="mso-spacerun: yes"> 
+  </span>Vector[N] is promoted to an Nx1 array.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#show">show, show_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Return a
+  formatted string representation for an operand.<span style="mso-spacerun:
+  yes">  </span>Options allow for specify the format of numbers, and the
+  strings used to separate column and row elements.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#transpose">transpose, transpose_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Performs
+  the matrix transpose, exchanging [i,j] with [j,i].<span style="mso-spacerun:
+  yes">  </span>A vector is promoted to a 1xN array by transpose.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#vdiag">vdiag, vdiag_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Create a
+  vector from the diagonal elements of a matrix.<o:p></o:p></span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext .5pt;border-top:none;
+  mso-border-top-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><a
+  href="#vtrim">vtrim, vtrim_br</a><o:p></o:p></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext .5pt;
+  border-right:solid windowtext .5pt;mso-border-top-alt:solid windowtext .5pt;
+  mso-border-left-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>For a
+  vector or matrix operand, just return the actual data elements by trimming
+  away the dimension and size data in the front<o:p></o:p></span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3><a name=demote><span style='mso-fareast-font-family:"MS Mincho"'>demote</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> x<o:p></o:p></span></h3>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>demote_br name_x_in
+{name_out {}}<o:p></o:p></span></h3>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Demote an Nx1 or 1xN matrix to a vector[n].<span
+style="mso-spacerun: yes">  </span>Demote a vector[1] to a scalar.<span
+style="mso-spacerun: yes">  </span>Call twice to demote a 1x1 matrix to
+scalar.<span style="mso-spacerun: yes">  </span>For the _br procedure, the
+default output destination is to overwrite the input.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3 style='mso-pagination:widow-orphan lines-together'><a name=dim><span
+style='mso-fareast-font-family:"MS Mincho"'>dim</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> x<o:p></o:p></span></h3>
+
+<h3 style='mso-pagination:widow-orphan lines-together'><span style='mso-fareast-font-family:
+"MS Mincho"'>dim_br name_x<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in;mso-pagination:widow-orphan lines-together'><span
+style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoBodyTextIndent style='mso-pagination:widow-orphan lines-together'>Return
+the dimension of the argument,<span style="mso-spacerun: yes">  </span>and to
+some degree verify a proper format.<span style="mso-spacerun: yes">  </span>Returns
+0 for a scalar, 1 for a vector, 2 for a matrix, and an empty string, {}, for an
+empty input value.<span style="mso-spacerun: yes">  </span>Most improper
+formats will result in an error.</p>
+
+<h3><a name=dotprod>dotprod</a> a b {N {}} {a0index 3} {b0index 3} {ainc 1}
+{binc 1}</h3>
+
+<h3>dotprod_br a_name b_name {N {}} {a0index 3} {b0index 3} {ainc 1} {binc 1}</h3>
+
+<p class=MsoBodyTextIndent>Perform the dot product of two operands, <b>a</b>
+and <b>b</b>, returning a scalar result.<span style="mso-spacerun: yes"> 
+</span>The default arguments will correctly process vector and conformable 1xN
+or Nx1 matrices.<span style="mso-spacerun: yes">  </span>The argument <b>N</b>
+is the number of element pairs to multiply when computing the sum of pair
+products.<span style="mso-spacerun: yes">  </span>The <b>a0index</b> and <b>b0index</b>
+optional arguments are the offset of the first element in the <b>a</b> and <b>b</b>
+operands, respectively.<span style="mso-spacerun: yes">  </span>The <b>ainc</b>
+and <b>binc</b> optional arguments are the index increment values to be added
+to the indexes into <b>a</b> and <b>b</b> to obtain subsequent elements.</p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3><a name="join_cols"><span style='mso-fareast-font-family:"MS Mincho"'>join_cols</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> a b<o:p></o:p></span></h3>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>join_cols_br {a_in b_in
+{c_out {}}<o:p></o:p></span></h3>
+
+<p class=MsoBodyTextIndent>Combine vector or matrices as added columns,
+returning a matrix result.<span style="mso-spacerun: yes">  </span>The
+arguments must have the same number of rows.<span style="mso-spacerun: yes"> 
+</span>The default output for the <b>join_cols_br</b> call is to overwrite the<b>
+a</b> input.</p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3><a name="join_rows"><span style='mso-fareast-font-family:"MS Mincho"'>join_rows</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> a b<o:p></o:p></span></h3>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>join_rows_br {a_in b_in
+{c_out {}}<o:p></o:p></span></h3>
+
+<p class=MsoBodyTextIndent>Combine vector or matrices as added rows, returning
+a matrix result.<span style="mso-spacerun: yes">  </span>The arguments must
+have the same number of columns.<span style="mso-spacerun: yes">  </span>The
+default output for the <b>join_rows_br</b> call is to overwrite the <b>a</b>
+input.</p>
+
+<h3><a name=lassign><span style='mso-fareast-font-family:"MS Mincho"'>lassign</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> list index value<o:p></o:p></span></h3>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>lassign_br listname index
+value<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Replace a single element in a Tcl list.<span style="mso-spacerun:
+yes">  </span>There is conditional logic in the package so that the <b>lassign_br</b>
+could be replaced by a C code version that would be able to update the list
+directly without copying the data the way <b>lreplace</b>
+does.<o:p></o:p></span></p>
+
+<h3><a name=madd><span style='mso-fareast-font-family:"MS Mincho"'>madd</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> a b<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>This procedure uses <b>mat_binary_op</b> to return a matrix or
+vector result from the addition of corresponding elements in two operands.<o:p></o:p></span></p>
+
+<h3><a name=madjust><span style='mso-fareast-font-family:"MS Mincho"'>madjust</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> a scale offset<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>This procedure uses <b>mat_unary_op</b> to return a matrix or
+vector where the elements have been multiplied by a common factor, <b>scale</b>,
+and then the <b>offset</b> value has been added.<o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h3><a name="mat_binary_op"><span style='mso-fareast-font-family:"MS Mincho"'>mat_binary_op</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> a b {op +}<o:p></o:p></span></h3>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>mat_binary_op_br a_in
+b_in op {c_out {}}<o:p></o:p></span></h3>
+
+<p class=MsoBodyTextIndent>This procedure is used to execute binary operations
+such as addition on corresponding elements of vector or matrix operands.<span
+style="mso-spacerun: yes">  </span>The default output for the _br call is to
+overwrite the <b>a</b> input.</p>
+
+<h3><a name=mathprec>mathprec</a> {puts puts}</h3>
+
+<p class=MsoBodyTextIndent>Returns the smallest number epsilon, such that
+1+epsilon &gt; 1.<span style="mso-spacerun: yes">  </span>Also reports on the
+machine radix, digits, and rounding behavior, by using $puts as a command with
+a single string argument, of the format “radix=2.0 digits=53
+epsilon=2.22044604925e-016 method=truncation”.<span style="mso-spacerun: yes"> 
+</span>The default value of the puts argument causes the string to be printed
+at the console.</p>
+
+<h3><a name=mcols>mcols</a> m</h3>
+
+<h3>mcols_br m_name</h3>
+
+<p class=MsoBodyTextIndent>Return the number of columns in a matrix or
+vector.<span style="mso-spacerun: yes">  </span>You can use <a href="#mrows">mrows</a>
+and <b>mcols</b> to keep your software isolated from the details of the data
+representation.</p>
+
+<p class=MsoBodyTextIndent><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<h3><a name=mdiag><span style='mso-fareast-font-family:"MS Mincho"'>mdiag</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> v<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Creates a diagonal matrix from a vector, an Nx1 matrix, or a 1xN
+matrix.<o:p></o:p></span></p>
+
+<h3><a name=mdingdong><span style='mso-fareast-font-family:"MS Mincho"'>mdingdong</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> N<o:p></o:p></span></h3>
+
+<p class=MsoBodyTextIndent>Create the Ding Dong test matrix of size NxN.<span
+style="mso-spacerun: yes">  </span>The matrix is a Cauchy matrix that is represented
+inexactly in the machine, but very stable for inversion by elimination
+methods.<span style="mso-spacerun: yes">  </span>Created by Dr. F. N. Ris
+(Nash, 1979).</p>
+
+<h3><a name=mdiv><span style='mso-fareast-font-family:"MS Mincho"'>mdiv</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> a b<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Uses <b>mat_binary_op</b> to compute a new matrix or vector from
+the division of corresponding elements in two operands.<span
+style="mso-spacerun: yes">  </span><o:p></o:p></span></p>
+
+<h3><a name=mevsvd><span style='mso-fareast-font-family:"MS Mincho"'>mevsvd</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> A {epsilon 2.3e-16}<o:p></o:p></span></h3>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>mevsvd_br A_in_out
+evals_out {epsilon 2.3e-16}<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Solve for the eigenvectors and eigenvalues of a real symmetric
+matrix by singular value decomposition.<span style="mso-spacerun: yes"> 
+</span>The eigenvectors of the solution are returned as the columns of A.<span
+style="mso-spacerun: yes">  </span>The epsilon argument is expected to be the
+value returned by the <b>mathprec</b> procedure for your platform.<o:p></o:p></span></p>
+
+<h3><a name=mhilbert><span style='mso-fareast-font-family:"MS Mincho"'>mhilbert</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> N<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Create the Hilbert test matrix which is notorious for being<span
+style="mso-spacerun: yes">  </span>ill conditioned for eigenvector/eigenvalue
+solutions. (Nash, 1979)<o:p></o:p></span></p>
+
+<h3><a name=mident><span style='mso-fareast-font-family:"MS Mincho"'>mident</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> N<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Create an identity matrix of order N.<o:p></o:p></span></p>
+
+<h3><a name=mlssvd><span style='mso-fareast-font-family:"MS Mincho"'>mlssvd</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> A y {q 0.0} {puts puts} {epsilon
+2.3e-16}<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Solve the linear least squares solution for over-determined linear
+equations using singular value decomposition.<span style="mso-spacerun: yes"> 
+</span>Solves the problem <b>A</b>[m,n]<b>x</b>[n] ~ <b>y</b>[m] for <b>x</b>[n]
+where each row of <b>A</b> is a set of dependent variable values, <b>x</b>[n]
+is the vector of independent variables, and <b>y</b>[m] is the set of dependent
+values such as measured outcome values.<span style="mso-spacerun: yes"> 
+</span>The first column of <b>A</b> is usually all ones to compute a constant
+term in the regression equation.<span style="mso-spacerun: yes">  </span>The value
+<b>q</b> is specified such that singular values less than <b>q</b> are treated
+as zero.<span style="mso-spacerun: yes">  </span>Typically a judgment is made
+as to what variation is significant, and what is just noise.<span
+style="mso-spacerun: yes">  </span>The significance level varies by
+application.<span style="mso-spacerun: yes">  </span>For example, a small value
+of <b>q</b> might be appropriate to detect a new planet from orbital data,
+whereas larger values would be used to regress socio-economic statistics.<span
+style="mso-spacerun: yes">  </span>The default value of the <b>puts</b>
+argument causes the singular values to be printed at the console after the
+matrix is factored.<span style="mso-spacerun: yes">  </span>The <b>epsilon</b>
+argument is expected to be the result of the <b>mathprec</b> procedure for your
+platform.<o:p></o:p></span></p>
+
+<h3><a name=mmult><span style='mso-fareast-font-family:"MS Mincho"'>mmult</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> A B<o:p></o:p></span></h3>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>mmult_br name_A name_B
+C_out<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Ordinary matrix multiplication, <b>A</b>[p,q] x <b>B</b>[q,r] = <b>C</b>[p,r].<span
+style="mso-spacerun: yes">  </span>Vector arguments are<span
+style="mso-spacerun: yes">  </span>promoted to Nx1 arrays, so chances are if
+you are using one as a left operand you probably intend to use the transpose of
+it (1xN), which is easily done using the <a href="#transpose">transpose</a>
+procedure.<span style="mso-spacerun: yes">  </span>The <b>mmult</b> procedure
+returns the value of the matrix product.<span style="mso-spacerun: yes"> 
+</span>The <b>mmult_br</b> procedure writes the matrix product into the
+variable whose name is <b>C_out</b>.<span style="mso-spacerun: yes"> 
+</span>The variable name <b>C_out </b>should specify a different variable than
+either of the input variables specified by <b>name_A</b> or <b>name_B</b>.<o:p></o:p></span></p>
+
+<h3><a name=mnorms><span style='mso-fareast-font-family:"MS Mincho"'>mnorms</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> a<o:p></o:p></span></h3>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>mnorms_br name_a
+means_out sigmas_out<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Compute the means and standard deviations of each column of the
+input matrix.<span style="mso-spacerun: yes">  </span>Vector results are
+returned.<span style="mso-spacerun: yes">  </span>If the number of rows is less
+than 2, the standard deviations cannot be calculated and an error is returned.<o:p></o:p></span></p>
+
+<h3><a name=mnormalize><span style='mso-fareast-font-family:"MS Mincho"'>mnormalize</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> a means sigmas<o:p></o:p></span></h3>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>mnormalize_br name_a means_in
+sigmas_in {c_out {}}<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Normalize each column of a matrix by subtracting the corresponding
+mean and then dividing by the corresponding standard deviation.<span
+style="mso-spacerun: yes">  </span>The default output matrix for <b>mnormalize_br</b>
+is to overwrite the input matrix specified by <b>name_a</b>.<o:p></o:p></span></p>
+
+<h3><a name=moffset><span style='mso-fareast-font-family:"MS Mincho"'>moffset</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> a delta<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Uses <b>mat_unary_op</b> to add a scalar constant to the elements
+of an operand.<span style="mso-spacerun: yes">  </span>The modified operand is
+the returned result.<o:p></o:p></span></p>
+
+<h3><a name=mprod><span style='mso-fareast-font-family:"MS Mincho"'>mprod</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> a b<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Uses <b>mat_binary_op</b> to compute a new matrix or vector from the
+multiplicative product of corresponding elements in two operands. <o:p></o:p></span></p>
+
+<h3><a name=mrange><span style='mso-fareast-font-family:"MS Mincho"'>mrange</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> m col_start col_last {row_start 0}
+{row_last end}<o:p></o:p></span></h3>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>mrange_br name_m_in c_out
+col_start col_last {row_start 0} {row_last end}<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Returns a subset of the selected columns and selected rows of a
+matrix as a new matrix.<span style="mso-spacerun: yes">  </span>Column and row
+indexing begin with 0.<span style="mso-spacerun: yes">  </span>The token <b>end
+</b>may be used to specify the last row or column.<span style="mso-spacerun:
+yes">  </span>The default values for row selection will return all rows.<span
+style="mso-spacerun: yes">  </span>The rows and columns are read and copied
+from the input matrix in the order of start to last.<span style="mso-spacerun:
+yes">  </span>The selection result includes rows and columns with index values
+equal to the start indexes and proceeds to the last indexes, including all rows
+and columns with indexes between the start and last values and equal to the start
+and last values.<span style="mso-spacerun: yes">  </span>If the start index is
+less than the last index for row or column selection, the result matrix is
+created with the row or columns in reverse order.<span style="mso-spacerun:
+yes">  </span>This is a feature, not a bug.<span style="mso-spacerun: yes"> 
+</span><o:p></o:p></span></p>
+
+<p class=MsoPlainText style='margin-left:.5in'>% set m {2 2 3 1 2 3 4 5 6}</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>% show $m</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>1 2 3</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>4 5 6</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>% show [mrange $m 0 1]</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>1 2</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>4 5</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>% show [mrange $m end 0]</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>3 2 1</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>6 5 4</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>% show [mrange $m 1 1 0 0]</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>2</p>
+
+<h3><a name=mround><span style='mso-fareast-font-family:"MS Mincho"'>mround</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> a {epsilon 1.0e-8}<o:p></o:p></span></h3>
+
+<p class=MsoBodyTextIndent>Uses <b>mat_unary_op</b> to round-off to the nearest
+integer the elements of a matrix or vector which are within epsilon of an
+integer value.</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>% show $m %12.4g</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">           </span>1<span style="mso-spacerun: yes">  
+</span>1.388e-016<span style="mso-spacerun: yes">   </span>8.327e-017<span
+style="mso-spacerun: yes">  </span>-2.776e-017</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">  </span>1.388e-016<span style="mso-spacerun: yes">           
+</span>1<span style="mso-spacerun: yes">  </span>-5.551e-017<span
+style="mso-spacerun: yes">   </span>-1.11e-016</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">  </span>8.327e-017<span style="mso-spacerun: yes"> 
+</span>-5.551e-017<span style="mso-spacerun: yes">            </span>1<span
+style="mso-spacerun: yes">  </span>-5.551e-017</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes"> </span>-2.776e-017<span style="mso-spacerun: yes">  
+</span>-1.11e-016<span style="mso-spacerun: yes">  </span>-5.551e-017<span
+style="mso-spacerun: yes">            </span>1</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>% show [mround $m]</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>1.0 0.0 0.0 0.0</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>0.0 1.0 0.0 0.0</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>0.0 0.0 1.0 0.0</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>0.0 0.0 0.0 1.0</p>
+
+<h3><a name=mrows></a><a name=mscale><span style='mso-bookmark:mrows'>mrows</span>
+m</a></h3>
+
+<h3><span style='mso-bookmark:mscale'>mrows_br m_name</span></h3>
+
+<p class=MsoBodyTextIndent><span style='mso-bookmark:mscale'>Return the number
+of rows in a matrix or vector.<span style="mso-spacerun: yes">  </span>You can
+use <b>mrows</b> and </span><a href="#mcols"><span style='mso-bookmark:mscale'>mcols</span><span
+style='mso-bookmark:mscale'></span></a><span style='mso-bookmark:mscale'> to keep
+your software isolated from the details of the data representation.</span></p>
+
+<h3><span style='mso-bookmark:mscale'>mscale</span> a scalefactor</h3>
+
+<p class=MsoBodyTextIndent>Uses <b>mat_unary_op</b> to multiply each element in
+a matrix or vector operand, <b>a</b>, by the scalar <b>scalefactor</b>.</p>
+
+<h3><a name=msolve>msolve</a> A p</h3>
+
+<h3>msolve_br Ap_in {tolerance 2.3e-16}</h3>
+
+<p class=MsoNormal style='margin-left:.5in'>Solves a system of linear
+equations, <b>Ax</b> = <b>p</b>, for <b>x</b>, by brute force application of
+Gauss elimination with partial pivoting.<span style="mso-spacerun: yes"> 
+</span><span style='mso-fareast-font-family:"MS Mincho"'>When <b>p</b> is the
+identity matrix, the solution <b>x</b>, is the inverse of </span>matrix <b><span
+style='mso-fareast-font-family:"MS Mincho"'>A</span></b><span style='mso-fareast-font-family:
+"MS Mincho"'>.</span>The <b>msolve_br</b> procedure accepts as input the
+columnwise concatenation of <b>A</b> and <b>p</b>, and overwrites the <b>p</b>
+columns with the solution columns <b>x</b>.<span style="mso-spacerun: yes">  
+</span>The <b>msolve</b> procedure accepts <b>A</b> and <b>p</b> as separate
+arguments, and returns the solution data directly.<span style="mso-spacerun:
+yes">  </span><span style='mso-fareast-font-family:"MS Mincho"'>The <b>epsilon</b>
+argument is expected to be the result of the <b>mathprec</b> procedure for your
+platform.<o:p></o:p></span></p>
+
+<h3><a name=msub><span style='mso-fareast-font-family:"MS Mincho"'>msub</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> a b<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Uses <b>mat_binary_op</b> to compute a new matrix or vector from
+the subtraction of corresponding elements in two operands. <o:p></o:p></span></p>
+
+<h3><a name=msum>msum</a> a</h3>
+
+<h3>msum_br name_a sums_out</h3>
+
+<p class=MsoBodyTextIndent>Compute the sums of each column of a matrix or
+vector, returning a vector or scalar result.<span style="mso-spacerun: yes"> 
+</span>Call twice to get the total sum of columns and rows (set total [msum
+[msum $a]]).</p>
+
+<h3><a name=msvd>msvd</a> a</h3>
+
+<h3>msvd_br name_a_in_U_out S_out V_out {epsilon 2.3e-16}</h3>
+
+<p class=MsoBodyTextIndent>Perform the Singular Value Decomposition of a
+matrix.</p>
+
+<p class=MsoBodyTextIndent>This factors matrix A into (U)(S)(Vtrans) where</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">   </span><span style="mso-spacerun: yes"> </span>A[m,n] is the original
+matrix</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">    </span>U[m,n] has orthogonal columns (Ut)(U) =<span
+style="mso-spacerun: yes">   </span>(1(k)</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">       </span>and multiplies to an identity matrix<span
+style="mso-spacerun: yes">     </span>...</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">       </span>supplemented with zeroes if needed<span style="mso-spacerun:
+yes">        </span>0(n-k))</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">    </span>V[n,n] is orthogonal<span style="mso-spacerun: yes">  
+</span>(V)(Vtran) = [mident $n]</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">       </span>V contains the eigenvectors aka the principal components</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">    </span>S is diagonal with the positive singular values of A</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">       </span>Square S and divide by (m-1) to get the principal component</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">       </span>eigenvalues.</p>
+
+<p class=MsoBodyTextIndent><span style="mso-spacerun: yes">    </span></p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">    </span>A[m,n]V[n,n] = B[m,n]<span style="mso-spacerun: yes">  </span>transforms
+A to orthogonal columns, B</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">    </span>B[m,n] = U[m,n]S[n,n]<span style="mso-spacerun: yes">  </span></p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">    </span></p>
+
+<p class=MsoNormal style='margin-left:.5in'>The <b>msvd</b> procedure outputs
+formatted results to the console.<span style="mso-spacerun: yes">  </span>The <b>msvd_br</b>
+procedure overwrites the input matrix <b>a</b> with the <b>U</b> result
+matrix.<span style="mso-spacerun: yes">  </span><span style='mso-fareast-font-family:
+"MS Mincho"'>The <b>epsilon</b> argument is expected to be the result of the <b>mathprec</b>
+procedure for your platform.</span></p>
+
+<h3><a name="mat_unary_op">mat_unary_op</a> a op</h3>
+
+<h3>mat_unary_op_br name_a op {name_c_out {}}</h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Perform unary operations on operand elements like scaling.<span
+style="mso-spacerun: yes">  </span>The default output of the </span><b>mat_unary_op_br</b>
+procedure is to overwrite the input specified by <b>name_a</b>.<span
+style="mso-spacerun: yes">  </span>The logic sweeps through the matrix or
+vector, and evaluates the concatenation of $<b>op</b> with the operand
+element.<span style="mso-spacerun: yes">  </span>For example, if the value of <b>op</b>
+is “expr 0.5 *” the result would be to multiply each element by 0.5.<span
+style="mso-spacerun: yes">  </span>You can define your own procedures, and pass
+the procedure name as the <b>op</b> argument.</p>
+
+<h3><a name=promote>promote</a> x</h3>
+
+<h3>promote_br name_x {name_out {}}</h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Promote a scalar or vector to an array.<span style="mso-spacerun:
+yes">  </span>Vector[N] is promoted to an Nx1 array.<span style="mso-spacerun:
+yes">  </span>Calling promote with a matrix argument is all right; the result
+is the matrix unchanged.<span style="mso-spacerun: yes">  </span>The default
+output of <b>promote_br</b> is to overwrite the input.<o:p></o:p></span></p>
+
+<h3><a name=show><span style='mso-fareast-font-family:"MS Mincho"'>show</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> x {format {}} {col_join { }}
+{row_join \n}} <o:p></o:p></span></h3>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>show_br name_in {name_out
+{}} {format {}} {col_join { }} {row_join \n}<o:p></o:p></span></h3>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'>Return a formatted string representation for an operand.<span
+style="mso-spacerun: yes">   </span>Options allow for specify the format of
+numbers, and the strings used to separate column and row elements.<span
+style="mso-spacerun: yes">  </span>The optional <b>format</b> argument is a
+specification string which is applied to convert each element using the Tcl 
+format command.<span style="mso-spacerun: yes"> 
+</span>The format command is very is similar to the C code sprintf
+command.<span style="mso-spacerun: yes">   </span><o:p></o:p></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span style='mso-fareast-font-family:
+"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoPlainText style='margin-left:.5in'>set m {2 2 3 1 2 3 4 5 6}</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>% show $m %6.2f</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">  </span>1.00<span style="mso-spacerun: yes">   </span>2.00<span
+style="mso-spacerun: yes">   </span>3.00</p>
+
+<p class=MsoPlainText style='margin-left:.5in'><span style="mso-spacerun:
+yes">  </span>4.00<span style="mso-spacerun: yes">   </span>5.00<span
+style="mso-spacerun: yes">   </span>6.00</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>% show $m {} , \;</p>
+
+<p class=MsoPlainText style='margin-left:.5in'>1,2,3;4,5,6</p>
+
+<h3><a name=transpose><span style='mso-fareast-font-family:"MS Mincho"'>transpose</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'> x<o:p></o:p></span></h3>
+
+<h3><span style='mso-fareast-font-family:"MS Mincho"'>transpose_br name_x
+{name_out {}}<o:p></o:p></span></h3>
+
+<p class=MsoBodyTextIndent>Performs the matrix transpose, exchanging [i,j] with
+[j,i].<span style="mso-spacerun: yes">  </span>A vector is promoted to a 1xN
+array by transpose.<span style="mso-spacerun: yes">  </span>The default output
+of the <b>transpose_br</b> procedure is to overwrite the input data named by <b>name_x</b>.</p>
+
+<h3><a name=vdiag>vdiag</a> m</h3>
+
+<h3>vdiag_br m_name_in v_out</h3>
+
+<p class=MsoBodyTextIndent>Create a vector from the diagonal elements of a
+matrix.</p>
+
+<h3><a name=vtrim>vtrim</a> x</h3>
+
+<h3>vtrim_br <span style='mso-fareast-font-family:"MS Mincho"'>name_x {name_out
+{}}</span></h3>
+
+<p class=MsoBodyTextIndent>For a vector or matrix operand, just return the
+actual data elements by trimming away the dimension and size data in the front
+of the underlying Tcl list representation.<span style="mso-spacerun: yes"> 
+</span>The default output of the <b>vtrim_br</b> procedure is to overwrite the
+input data named by <b>name_x</b>.</p>
+
+<h1><span style='mso-fareast-font-family:"MS Mincho"'>About the <a name=author>Author</a><o:p></o:p></span></h1>
+
+<p class=MsoNormal>This package has been developed by Edward C. Hume, III
+PhD.<span style="mso-spacerun: yes">  </span>Dr. Hume has been interested in
+numerical methods since the early 1980’s when his doctoral research at MIT
+involved a comparison of Finite Element and Boundary Element methods for moving
+boundary problems.<span style="mso-spacerun: yes">  </span>In recent years he
+has been applying univariate and multivariate Statistical Process Control
+techniques in his consulting work.<span style="mso-spacerun: yes">  </span>Dr.
+Hume is the founder of Hume Integration Software, a software product and
+consulting company, with a focus on Computer Integrated Manufacturing in the
+Semiconductor and Electronics industries.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal>Hume Integration's flagship product is the <b>Distributed Message
+Hub (DMH) Application Development Package</b>, a cohesive and synergistic set
+of tools that extends the Tcl/Tk programming environment. The package includes
+an in-memory SQL database that has subscription capability, comprehensive
+support for equipment interfaces using SECS, serial, or network protocols, and
+high-level facilities for interprocess communication. Applications can easily
+share data and logic by exchanging Tcl and SQL messages which are efficiently
+processed by the extended interpreter. This toolset is offered for Windows
+2000/NT and major POSIX platforms including HP-UX, Linux, AIX, and SOLARIS. The
+toolset is in 7x24 use in dozens of factories located in the United States,
+Malaysia, Korea, Japan, China, Hong Kong, Singapore, Taiwan, Mexico, France,
+and Scotland.<span style="mso-spacerun: yes">  </span>Feel free to visit our
+website at <a href="http://www.hume.com/">http://www.hume.com</a>.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<h1><a name=references><span style='mso-fareast-font-family:"MS Mincho"'>References</span></a><span
+style='mso-fareast-font-family:"MS Mincho"'><o:p></o:p></span></h1>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The more
+sophisticated algorithms in this package were adapted from Nash, 1979.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><u><span style='mso-fareast-font-family:"MS Mincho"'>Compact
+Numerical Methods for Computers: Linear Algebra and Function Minimisation</span></u><span
+style='mso-fareast-font-family:"MS Mincho"'> by J. C. Nash, John Wiley &amp;
+Sons, New York, 1979.<o:p></o:p></span></p>
+
+<h1><a name=LicenseTerms></a><a name="_License_Terms"></a><span
+style='mso-bookmark:LicenseTerms'><span style='mso-fareast-font-family:"MS Mincho"'>License
+Terms</span></span><span style='mso-fareast-font-family:"MS Mincho"'><o:p></o:p></span></h1>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>The La
+package software is being distributed under terms and conditions similar to
+Tcl/Tk.<span style="mso-spacerun: yes">  </span>The author is providing the
+package software to the Tcl community as a returned favor for the value of
+packages received over the years.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal>The La package software is copyrighted by Hume Integration
+Software. The following terms apply to all files associated with the software
+unless explicitly disclaimed in individual files.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal>The authors hereby grant permission to use, copy, modify,
+distribute, and license this software and its documentation for any purpose,
+provided that existing copyright notices are retained in all copies and that
+this notice is included verbatim in any distributions. No written agreement,
+license, or royalty fee is required for any of the authorized uses.
+Modifications to this software may be copyrighted by their authors and need not
+follow the licensing terms described here, provided that the new terms are
+clearly indicated on the first page of each file where they apply.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal>IN NO EVENT SHALL THE AUTHORS OR DISTRIBUTORS BE LIABLE TO
+ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ARISING OUT OF THE USE OF THIS SOFTWARE, ITS DOCUMENTATION, OR ANY DERIVATIVES
+THEREOF, EVEN IF THE AUTHORS HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal>THE AUTHORS AND DISTRIBUTORS SPECIFICALLY DISCLAIM ANY
+WARRANTIES,INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.<span
+style="mso-spacerun: yes">  </span>THIS SOFTWARE IS PROVIDED ON AN &quot;AS
+IS&quot; BASIS, AND THE AUTHORS AND DISTRIBUTORS HAVE NO OBLIGATION TO PROVIDE
+MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
+
+<p class=MsoNormal>GOVERNMENT USE: If you are acquiring this software on behalf
+of the U.S. government, the Government shall have only &quot;Restricted
+Rights&quot; in the software and related documentation as defined in the
+Federal Acquisition Regulations (FARs) in Clause 52.227.19 (c) (2).<span
+style="mso-spacerun: yes">  </span>If you are acquiring the software on behalf
+of the Department of Defense, the software shall be classified as
+&quot;Commercial Computer Software&quot; and the Government shall have only
+&quot;Restricted Rights&quot; as defined in Clause 252.227-7013 (c) (1) of
+DFARs.<span style="mso-spacerun: yes">  </span>Notwithstanding the foregoing,
+the authors grant the U.S. Government and others acting in its behalf
+permission to use and distribute the software in accordance with the terms
+specified in this license.</p>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>
+
+<h1><a name=DocVersion><span style='mso-fareast-font-family:"MS Mincho"'>Document
+Version</span></a><span style='mso-fareast-font-family:"MS Mincho"'><o:p></o:p></span></h1>
+
+<p class=MsoNormal><span style='mso-fareast-font-family:"MS Mincho"'>Date of
+last revsion $Date: 2001/11/14 13:27:35 $.<o:p></o:p></span></p>
+
+</div>
+
+</body>
+
+</html>

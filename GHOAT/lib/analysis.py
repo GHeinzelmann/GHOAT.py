@@ -12,7 +12,17 @@ from lib.pymbar import MBAR # multistate Bennett acceptance ratio
 from lib.pymbar import timeseries # timeseries analysis
 from pathlib import Path
 
-def fe_openmm(components, temperature, pose, rest):
+def fe_openmm(components, temperature, guest, rest, attach_rest, lambdas, guest_rot, dic_itera1, dic_itera2, itera_steps, dt, dlambda, dec_int, weights, blocks, ti_points):
+
+    # Total simulation time
+    total_time = 0
+    for i in components:
+      if i == 'a' or i == 'l' or i == 't' or i == 'c' or i == 'r' or i == 'm' or i == 'n':
+        total_time = total_time + (dic_itera1[i]+dic_itera2[i])*itera_steps*len(attach_rest)*float(dt)/1000
+      else:
+        total_time = total_time + (dic_itera1[i]+dic_itera2[i])*itera_steps*len(lambdas)*float(dt)/1000
+#    print(total_time)
+
 
     # Set initial values to zero
     fe_a = fe_bd = fe_t = fe_m = fe_n = fe_v = fe_e = fe_c = fe_r = fe_l = fe_f = fe_w = fe_vs = fe_es = 0
@@ -20,9 +30,12 @@ def fe_openmm(components, temperature, pose, rest):
     sd_a = sd_bd = sd_t = sd_m = sd_n = sd_v = sd_e = sd_c = sd_r = sd_l = sd_f = sd_w = sd_vs = sd_es = 0
 
 
-    # Acquire simulation data
+    # Get free energies for the whole run
     os.chdir('fe')
-    os.chdir(pose)
+    os.chdir(guest)
+    # Create Results folder
+    if not os.path.exists('Results'):
+      os.makedirs('Results')
     for i in range(0, len(components)):
       comp = components[i]
       if comp == 'a' or comp == 'l' or comp == 't' or comp == 'c' or comp == 'r' or comp == 'm' or comp == 'n':
@@ -47,7 +60,7 @@ def fe_openmm(components, temperature, pose, rest):
             t3_0  = float(splitdata[6].strip(','))
             k_r = rest[2]
             k_a = rest[3]
-            fe_bd = fe_int_op(r0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, temperature)
+            fe_bd = fe_int_op(r0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, guest_rot, temperature)
         out_file=Path('./output.dat')
         if out_file.exists():
           with open(out_file, "r") as f_in:
@@ -55,68 +68,272 @@ def fe_openmm(components, temperature, pose, rest):
             lines = list(line for line in lines if line) # Non-blank lines in a list   
             for k in range(0, len(lines)):
               splitdata = lines[k].split()
-              if (splitdata[0].strip() == 'Relative'):
+              if (splitdata[0].strip() == 'Relative' and splitdata[6].strip() == 'whole'):
                 if comp == 'c':
-                  fe_c = -1.00*float(splitdata[7])
-                  sd_c = float(splitdata[10])
+                  fe_c = -1.00*float(splitdata[9])
                 elif comp == 'a':
-                  fe_a = float(splitdata[7])
-                  sd_a = float(splitdata[10])
+                  fe_a = float(splitdata[9])
                 elif comp == 't':
-                  fe_t = float(splitdata[7])
-                  sd_t = float(splitdata[10])
+                  fe_t = float(splitdata[9])
+                elif comp == 'n':
+                  fe_n = -1.00*float(splitdata[9])
+                elif comp == 'm':
+                  fe_m = float(splitdata[9])
                 elif comp == 'l':
-                  fe_l = float(splitdata[7])
-                  sd_l = float(splitdata[10])
+                  fe_l = float(splitdata[9])
                 elif comp == 'r':
-                  fe_r = -1.00*float(splitdata[7])
-                  sd_r = float(splitdata[10])
+                  fe_r = -1.00*float(splitdata[9])
       elif comp == 'e' or comp == 'v':
         os.chdir('sdr')
         os.chdir('%s-comp' %(comp))
         out_file=Path('./output.dat')
-        if out_file.exists():
-          with open(out_file, "r") as f_in:
-            lines = (line.rstrip() for line in f_in)
-            lines = list(line for line in lines if line) # Non-blank lines in a list   
-            for k in range(0, len(lines)):
-              splitdata = lines[k].split()
-              if (splitdata[0].strip() == 'Relative'):
-                if comp == 'e':
-                  fe_es = -1.00*float(splitdata[7])
-                  sd_es = float(splitdata[10])
-                elif comp == 'v':
-                  fe_vs = -1.00*float(splitdata[7])
-                  sd_vs = float(splitdata[10])
+        if dec_int == 'mbar':
+          if out_file.exists():
+            with open(out_file, "r") as f_in:
+              lines = (line.rstrip() for line in f_in)
+              lines = list(line for line in lines if line) # Non-blank lines in a list   
+              for k in range(0, len(lines)):
+                splitdata = lines[k].split()
+                if (splitdata[0].strip() == 'Relative' and splitdata[6].strip() == 'whole'):
+                  if comp == 'e':
+                    fe_es = -1.00*float(splitdata[9])
+                  elif comp == 'v':
+                    fe_vs = -1.00*float(splitdata[9])
+        elif dec_int == 'ti':
+          ### Determine Number of windows
+          K = 0
+          filename = './'+comp+'%02.0f/output.dat' % K
+          while os.path.isfile(filename):
+            K = K+1
+            filename = './'+comp+'%02.0f/output.dat' % K
+#          print(K)
+          if K != ti_points:
+            print('Error: Missing simulation data for TI-GQ for the '+comp+' component of the '+guest+' calculation')
+            sys.exit(1)
+          deltagop = 0
+          deltagop_er = 0
+          for k in range(K):
+            filename = './'+comp+'%02.0f/output.dat' % k
+            wind_d = 0
+            wind_er = 0
+            if  os.path.exists(filename):
+              with open(filename, "r") as f_in:
+                lines = (line.rstrip() for line in f_in)
+                lines = list(line for line in lines if line) # Non-blank lines in a list   
+                for j in range(0, len(lines)):
+                  splitdata = lines[j].split()
+                  if (splitdata[0].strip() == 'Relative' and splitdata[6].strip() == 'whole'):
+                    wind_d = float(splitdata[9])
+                    wind_er = float(splitdata[12])
+            deltagop = deltagop + wind_d*weights[k]
+            deltagop_er = deltagop_er + wind_er*weights[k]
+          if comp == 'e':
+            fe_es = -1.00*float(deltagop/dlambda)
+          elif comp == 'v':
+            fe_vs = -1.00*float(deltagop/dlambda)
       os.chdir('../../')
 
+    os.chdir('../../')
+
+    # Get MBAR free energy averages for the blocks
+    os.chdir('fe')
+    os.chdir(guest)
+    blstd_a = []
+    blstd_l = []
+    blstd_t = []
+    blstd_c = []
+    blstd_r = []
+    blstd_es = []
+    blstd_vs = []
+    for k in range(0, blocks):
+      # Reset free energy values
+      fb_a = fb_bd = fb_t = fb_c = fb_r = fb_l = fb_es = fb_vs = 0
+      for i in range(0, len(components)):
+        comp = components[i]
+        if comp == 'a' or comp == 'l' or comp == 't' or comp == 'c' or comp == 'r' or comp == 'm' or comp == 'n':
+          os.chdir('rest')
+          with open('./'+comp+'-comp/output.dat', "r") as f_in:
+            lines = (line.rstrip() for line in f_in)
+            lines = list(line for line in lines if 'Relative' in line and 'block' in line)
+            splitdata = lines[k].split()
+            if comp == 'c':
+              fb_c = -1.00*float(splitdata[8])
+              blstd_c.append(fb_c)
+            elif comp == 'a':
+              fb_a = float(splitdata[8])
+              blstd_a.append(fb_a)
+            elif comp == 't':
+              fb_t = float(splitdata[8])
+              blstd_t.append(fb_t)
+            elif comp == 'n':
+              fb_n = -1.00*float(splitdata[8])
+              blstd_n.append(fb_n)
+            elif comp == 'm':
+              fb_m = float(splitdata[8])
+              blstd_m.append(fb_m)
+            elif comp == 'l':
+              fb_l = float(splitdata[8])
+              blstd_l.append(fb_l)
+            elif comp == 'r':
+              fb_r = -1.00*float(splitdata[8])
+              blstd_r.append(fb_r)
+          os.chdir('../')
+        elif comp == 'v' or comp == 'e':
+          os.chdir('sdr')
+          if dec_int == 'mbar':
+            with open('./'+comp+'-comp/output.dat', "r") as f_in:
+              lines = (line.rstrip() for line in f_in)
+              lines = list(line for line in lines if 'Relative' in line and 'block' in line)
+              splitdata = lines[k].split()
+              if comp == 'e':
+                fb_es = -1.00*float(splitdata[8])
+                blstd_es.append(fb_es)
+              elif comp == 'v':
+                fb_vs = -1.00*float(splitdata[8])
+                blstd_vs.append(fb_vs)
+          elif dec_int == 'ti':
+            ### Determine Number of windows
+            K = 0
+            filename = './'+comp+'-comp/'+comp+'%02.0f/output.dat' % K
+            while os.path.isfile(filename):
+              K = K+1
+              filename = './'+comp+'-comp/'+comp+'%02.0f/output.dat' % K
+            deltagop = 0
+            for j in range(K):
+              filename = './'+comp+'-comp/'+comp+'%02.0f/output.dat' % j
+              wind_d = 0
+              if  os.path.exists(filename):
+                with open(filename, "r") as f_in:
+                  lines = (line.rstrip() for line in f_in)
+                  lines = list(line for line in lines if 'Relative' in line and 'block' in line)
+                  splitdata = lines[k].split()
+                  wind_d = float(splitdata[8])
+                  deltagop = deltagop + wind_d*weights[j]
+            if comp == 'e':
+              fb_es = -1.00*float(deltagop/dlambda)
+              blstd_es.append(fb_es)
+            elif comp == 'v':
+              fb_vs = -1.00*float(deltagop/dlambda)
+              blstd_vs.append(fb_vs)
+          os.chdir('../')
+
+      # Add components and write results for the blocks
+      total_fb = 0
+      fb_bd = fe_bd
+      resfile = open('./Results/Res-b%02d.dat' %(k+1), 'w')
+      resfile.write('\n---------------------------------------------------\n')
+      resfile.write('Binding free energy (sum of the chosen components)')
+      resfile.write('\n---------------------------------------------------\n\n')
+      resfile.write('%-20s %-10s\n\n' % ('Component', 'Free Energy'))
+      for i in range(0, len(components)):
+        if components[i] == 'a':
+          resfile.write('%-20s %8.2f\n' % ('Attach host CF;', fb_a))
+          total_fb = total_fb + fb_a
+        if components[i] == 'l':
+          resfile.write('%-20s %8.2f\n' % ('Attach guest CF;', fb_l))
+          total_fb = total_fb + fb_l
+        if components[i] == 't':
+          resfile.write('%-20s %8.2f\n' % ('Attach guest TR;', fb_t))
+          total_fb = total_fb + fb_t        
+          if 'c' not in components:
+            resfile.write('%-20s %8.2f\n' % ('Release guest TR;', fb_bd))
+            total_fb = total_fb + fb_bd
+        if components[i] == 'e':
+          resfile.write('%-20s %8.2f\n' % ('Electrostatic ('+dec_int.upper()+');', fb_es))
+          total_fb = total_fb + fb_es
+        if components[i] == 'v':
+          resfile.write('%-20s %8.2f\n' % ('Lennard-Jones ('+dec_int.upper()+');', fb_vs))
+          total_fb = total_fb + fb_vs
+        if components[i] == 'c':
+          resfile.write('%-20s %8.2f\n' % ('Release guest TR;', fb_bd))
+          total_fb = total_fb + fb_bd
+          resfile.write('%-20s %8.2f\n' % ('Release guest CF;', fb_c))
+          total_fb = total_fb + fb_c
+        if components[i] == 'r':
+          resfile.write('%-20s %8.2f\n' % ('Release host CF;', fb_r))
+          total_fb = total_fb + fb_r
+      resfile.write('\n%-20s %8.2f\n' % ('Binding free energy;', -1.0*total_fb))
+      resfile.write('\n---------------------------------------------------\n\n')
+      resfile.write('Energies in kcal/mol\n\n')
+      resfile.close
+
+    # Get sigmas of the blocks
+
+    for i in range(0, len(components)):
+      comp = components[i]
+      if comp == 'a':
+        sd_a = np.std(blstd_a)
+      if comp == 'l':
+        sd_l = np.std(blstd_l)
+      if comp == 't':
+        sd_t = np.std(blstd_t)
+      if comp == 'c':
+        sd_c = np.std(blstd_c)
+      if comp == 'r':
+        sd_r = np.std(blstd_r)
+      if comp == 'e':
+        sd_es = np.std(blstd_es)
+      if comp == 'v':
+        sd_vs = np.std(blstd_vs)
+
     # Write final results
-    total_sdr = fe_a + fe_l + fe_t + fe_es + fe_vs + fe_bd + fe_c + fe_r
-    sd_sdr = math.sqrt(sd_a**2 + sd_l**2 + sd_t**2 + sd_es**2 + sd_vs**2 + sd_bd**2 + sd_c**2 + sd_r**2)
-
-    # Create Results folder
-    if not os.path.exists('Results'):
-      os.makedirs('Results')
-
+    total_fe = 0
+    total_sd2 = 0
     resfile = open('./Results/Results.dat', 'w')
-    resfile.write('\n----------------------------------------------\n')
-    resfile.write('All components SDR method')
-    resfile.write('\n----------------------------------------------\n\n')
-    resfile.write('%-21s %-10s %-4s\n\n' % ('Component', 'Free Energy', '(Error)'))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Attach host CF', fe_a, sd_a))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Attach guest CF', fe_l, sd_l))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Attach guest TR', fe_t, sd_t))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Electrostatic (HRE)', fe_es, sd_es))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Lennard-Jones (HRE)', fe_vs, sd_vs))
-    resfile.write('%-20s %8.2f \n' % ('Release guest TR',fe_bd))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Release guest CF', fe_c, sd_c))
-    resfile.write('%-20s %8.2f (%3.2f)\n\n' % ('Release host CF', fe_r, sd_r))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Binding free energy', total_sdr, sd_sdr))
-    resfile.write('\n----------------------------------------------\n\n')
-    resfile.write('Energies in kcal/mol\n')
-    resfile.close()
+    resfile.write('\n---------------------------------------------------\n')
+    resfile.write('Binding free energy (sum of the chosen components)')
+    resfile.write('\n---------------------------------------------------\n\n')
+    resfile.write('%-20s %-10s %-4s\n\n' % ('Component', 'Free Energy;', 'Sigma'))
+    for i in range(0, len(components)):
+        if components[i] == 'a':
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Attach host CF;', fe_a, sd_a))
+          total_fe = total_fe + fe_a
+          total_sd2 = total_sd2 + sd_a**2
+        if components[i] == 'l':
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Attach guest CF;', fe_l, sd_l))
+          total_fe = total_fe + fe_l
+          total_sd2 = total_sd2 + sd_l**2
+        if components[i] == 't':
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Attach guest TR;', fe_t, sd_t))
+          total_fe = total_fe + fe_t
+          total_sd2 = total_sd2 + sd_t**2
+          if 'c' not in components:
+            resfile.write('%-20s %8.2f;    \n' % ('Release guest TR;',fe_bd))
+            total_fe = total_fe + fe_bd
+        if components[i] == 'e':
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Electrostatic ('+dec_int.upper()+');', fe_es, sd_es))
+          total_fe = total_fe + fe_es
+          total_sd2 = total_sd2 + sd_es**2
+        if components[i] == 'v':
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Lennard-Jones ('+dec_int.upper()+');', fe_vs, sd_vs))
+          total_fe = total_fe + fe_vs
+          total_sd2 = total_sd2 + sd_vs**2
+        if components[i] == 'c':
+          resfile.write('%-20s %8.2f;    \n' % ('Release guest TR;',fe_bd))
+          total_fe = total_fe + fe_bd
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Release guest CF;', fe_c, sd_c))
+          total_fe = total_fe + fe_c
+          total_sd2 = total_sd2 + sd_c**2
+        if components[i] == 'r':
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Release host CF;', fe_r, sd_r))
+          total_fe = total_fe + fe_r
+          total_sd2 = total_sd2 + sd_r**2
 
-def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dec_int, rest, guest_rot):
+    resfile.write('\n%-20s %8.2f;    %3.2f\n' % ('Binding free energy;', -1.0*total_fe, math.sqrt(total_sd2)))
+    resfile.write('\n---------------------------------------------------\n\n')
+    resfile.write('Energies in kcal/mol\n\n')
+    resfile.write('Total simulation time (based on input file): %6.1f nanoseconds\n\n' % total_time)
+
+def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weights, dec_int, rest, guest_rot, dic_steps1, dic_steps2, dt):
+
+    # Total simulation time
+    total_time = 0
+    for i in components:
+      if i == 'a' or i == 'l' or i == 't' or i == 'c' or i == 'r' or i == 'm' or i == 'n':
+        total_time = total_time + (dic_steps1[i]+dic_steps2[i])*len(attach_rest)*float(dt)/1000
+      else:
+        total_time = total_time + (dic_steps1[i]+dic_steps2[i])*len(lambdas)*float(dt)/1000
+#    print(total_time)
 
 
     # Set initial values to zero
@@ -457,46 +674,93 @@ def fe_values(blocks, components, temperature, guest, attach_rest, lambdas, weig
               fb_v = float(splitdata[1])
           os.chdir('../')
 
+      # Add components and write results for the blocks
+      total_fb = 0
       fb_bd = fe_bd
-      blck_sdr = fb_a + fb_l + fb_t + fb_e + fb_v + fb_bd + fb_c + fb_r
-
-      # Write results for the blocks
       resfile = open('./Results/Res-b%02d.dat' %(k+1), 'w')
-      resfile.write('\n----------------------------------------------\n\n')
-      resfile.write('%-21s %-10s\n\n' % ('Component', 'Free Energy'))
-      resfile.write('%-20s %8.2f\n' % ('Attach host CF', fb_a))
-      resfile.write('%-20s %8.2f\n' % ('Attach guest CF', fb_l))
-      resfile.write('%-20s %8.2f\n' % ('Attach guest TR', fb_t))
-      resfile.write('%-20s %8.2f\n' % ('Electrostatic ('+dec_int.upper()+')', fb_e))
-      resfile.write('%-20s %8.2f\n' % ('Lennard-Jones ('+dec_int.upper()+')', fb_v))
-      resfile.write('%-20s %8.2f\n' % ('Release guest TR',fb_bd))
-      resfile.write('%-20s %8.2f\n' % ('Release guest CF', fb_c))
-      resfile.write('%-20s %8.2f\n\n' % ('Release host CF', fb_r))
-      resfile.write('%-20s %8.2f\n' % ('Binding free energy', blck_sdr))
-      resfile.write('\n----------------------------------------------\n\n')
-      resfile.write('Energies in kcal/mol\n')
-      resfile.close()
+      resfile.write('\n---------------------------------------------------\n')
+      resfile.write('Binding free energy (sum of the chosen components)')
+      resfile.write('\n---------------------------------------------------\n\n')
+      resfile.write('%-20s %-10s\n\n' % ('Component', 'Free Energy'))
+      for i in range(0, len(components)):
+        if components[i] == 'a':
+          resfile.write('%-20s %8.2f\n' % ('Attach host CF;', fb_a))
+          total_fb = total_fb + fb_a
+        if components[i] == 'l':
+          resfile.write('%-20s %8.2f\n' % ('Attach guest CF;', fb_l))
+          total_fb = total_fb + fb_l
+        if components[i] == 't':
+          resfile.write('%-20s %8.2f\n' % ('Attach guest TR;', fb_t))
+          total_fb = total_fb + fb_t        
+          if 'c' not in components:
+            resfile.write('%-20s %8.2f\n' % ('Release guest TR;', fb_bd))
+            total_fb = total_fb + fb_bd
+        if components[i] == 'e':
+          resfile.write('%-20s %8.2f\n' % ('Electrostatic ('+dec_int.upper()+');', fb_e))
+          total_fb = total_fb + fb_e
+        if components[i] == 'v':
+          resfile.write('%-20s %8.2f\n' % ('Lennard-Jones ('+dec_int.upper()+');', fb_v))
+          total_fb = total_fb + fb_v
+        if components[i] == 'c':
+          resfile.write('%-20s %8.2f\n' % ('Release guest TR;', fb_bd))
+          total_fb = total_fb + fb_bd
+          resfile.write('%-20s %8.2f\n' % ('Release guest CF;', fb_c))
+          total_fb = total_fb + fb_c
+        if components[i] == 'r':
+          resfile.write('%-20s %8.2f\n' % ('Release host CF;', fb_r))
+          total_fb = total_fb + fb_r
+      resfile.write('\n%-20s %8.2f\n' % ('Binding free energy;', -1.0*total_fb))
+      resfile.write('\n---------------------------------------------------\n\n')
+      resfile.write('Energies in kcal/mol\n\n')
+      resfile.close
 
     # Write final results
-    total_sdr = fe_a + fe_l + fe_t + fe_e + fe_v + fe_bd + fe_c + fe_r
-    sd_sdr = math.sqrt(sd_a**2 + sd_l**2 + sd_t**2 + sd_e**2 + sd_v**2 + sd_bd**2 + sd_c**2 + sd_r**2)
-
+    total_fe = 0
+    total_sd2 = 0
     resfile = open('./Results/Results.dat', 'w')
-    resfile.write('\n----------------------------------------------\n\n')
-    resfile.write('%-21s %-10s %-4s\n\n' % ('Component', 'Free Energy', '(Error)'))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Attach host CF', fe_a, sd_a))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Attach guest CF', fe_l, sd_l))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Attach guest TR', fe_t, sd_t))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Electrostatic ('+dec_int.upper()+')', fe_e, sd_e))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Lennard-Jones ('+dec_int.upper()+')', fe_v, sd_v))
-    resfile.write('%-20s %8.2f \n' % ('Release guest TR',fe_bd))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Release guest CF', fe_c, sd_c))
-    resfile.write('%-20s %8.2f (%3.2f)\n\n' % ('Release host CF', fe_r, sd_r))
-    resfile.write('%-20s %8.2f (%3.2f)\n' % ('Binding free energy', total_sdr, sd_sdr))
-    resfile.write('\n----------------------------------------------\n\n')
-    resfile.write('Energies in kcal/mol\n')
-    resfile.close()
+    resfile.write('\n---------------------------------------------------\n')
+    resfile.write('Binding free energy (sum of the chosen components)')
+    resfile.write('\n---------------------------------------------------\n\n')
+    resfile.write('%-20s %-10s %-4s\n\n' % ('Component', 'Free Energy;', 'Sigma'))
+    for i in range(0, len(components)):
+        if components[i] == 'a':
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Attach host CF;', fe_a, sd_a))
+          total_fe = total_fe + fe_a
+          total_sd2 = total_sd2 + sd_a**2
+        if components[i] == 'l':
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Attach guest CF;', fe_l, sd_l))
+          total_fe = total_fe + fe_l
+          total_sd2 = total_sd2 + sd_l**2
+        if components[i] == 't':
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Attach guest TR;', fe_t, sd_t))
+          total_fe = total_fe + fe_t
+          total_sd2 = total_sd2 + sd_t**2
+          if 'c' not in components:
+            resfile.write('%-20s %8.2f;    \n' % ('Release guest TR;',fe_bd))
+            total_fe = total_fe + fe_bd
+        if components[i] == 'e':
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Electrostatic ('+dec_int.upper()+');', fe_e, sd_e))
+          total_fe = total_fe + fe_e
+          total_sd2 = total_sd2 + sd_e**2
+        if components[i] == 'v':
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Lennard-Jones ('+dec_int.upper()+');', fe_v, sd_v))
+          total_fe = total_fe + fe_v
+          total_sd2 = total_sd2 + sd_v**2
+        if components[i] == 'c':
+          resfile.write('%-20s %8.2f;    \n' % ('Release guest TR;',fe_bd))
+          total_fe = total_fe + fe_bd
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Release guest CF;', fe_c, sd_c))
+          total_fe = total_fe + fe_c
+          total_sd2 = total_sd2 + sd_c**2
+        if components[i] == 'r':
+          resfile.write('%-20s %8.2f;    %3.2f\n' % ('Release host CF;', fe_r, sd_r))
+          total_fe = total_fe + fe_r
+          total_sd2 = total_sd2 + sd_r**2
 
+    resfile.write('\n%-20s %8.2f;    %3.2f\n' % ('Binding free energy;', -1.0*total_fe, math.sqrt(total_sd2)))
+    resfile.write('\n---------------------------------------------------\n\n')
+    resfile.write('Energies in kcal/mol\n\n')
+    resfile.write('Total simulation time (based on input file): %6.1f nanoseconds\n\n' % total_time)
 
 def fe_mbar(comp, guest, mode, rest_file, temperature):
 
@@ -801,7 +1065,7 @@ def fe_int(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, guest_rot, temperature)
     else:
       return R*temperature*np.log((1/(8.0*np.pi*np.pi))*(1.0/1660.0)*r1_int*a1_int*t1_int*a2_int*t2_int*t3_int)
 
-def fe_int_op(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, temperature):
+def fe_int_op(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, guest_rot, temperature):
 
     R = 1.987204118e-3 # kcal/mol-K, a.k.a. boltzman constant
     beta = 1/(temperature*R)
@@ -835,7 +1099,10 @@ def fe_int_op(r1_0, a1_0, t1_0, a2_0, t2_0, t3_0, k_r, k_a, temperature):
     a2_int = np.trapz(f_a2(intrange),intrange)
 
     # Output total TR release free energy 
-    return R*temperature*np.log((1/(8.0*np.pi*np.pi))*(1.0/1660.0)*r1_int*a1_int*t1_int*a2_int*t1_int*t1_int)
+    if guest_rot == 'yes':
+      return R*temperature*np.log((1/(4.0*np.pi))*(1.0/1660.0)*r1_int*a1_int*t1_int*a2_int*t1_int)
+    else:
+      return R*temperature*np.log((1/(8.0*np.pi*np.pi))*(1.0/1660.0)*r1_int*a1_int*t1_int*a2_int*t1_int*t1_int)
 
 def fe_dd(comp, guest, mode, lambdas, weights, dec_int, rest_file, temperature):
 

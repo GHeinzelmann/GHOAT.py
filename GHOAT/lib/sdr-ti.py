@@ -41,7 +41,6 @@ else:
 timeStep=TSTP*unit_definitions.femtoseconds
 stepsPerIteration=SPITR
 productionIterations=PRIT
-equilibrationIterations=EQIT
 iterationsPerCheckpoint=ITCH
 extendIterations=1000
 
@@ -50,6 +49,19 @@ extendIterations=1000
 prmtop = AmberPrmtopFile('PRMFL')
 inpcrd = AmberInpcrdFile('full.inpcrd')
 system = prmtop.createSystem(nonbondedMethod=PME, nonbondedCutoff=CTF*nanometer, constraints=HBonds, rigidWater=True, ewaldErrorTolerance=0.0005)
+
+# Read restart file
+
+integrator=LangevinIntegrator(TMPRT*unit_definitions.kelvin, GAMMA_LN/unit_definitions.picoseconds, TSTP*unit_definitions.femtoseconds)
+simulation = Simulation(prmtop.topology, system, integrator)
+with open('restart.chk', 'rb') as f:
+  simulation.context.loadCheckpoint(f.read())
+state = simulation.context.getState(getPositions=True, getVelocities=True)
+veloc = state.getVelocities()
+posit = state.getPositions()
+box_vec = state.getPeriodicBoxVectors()
+with open('equil.pdb', 'w') as output:
+    PDBFile.writeFile(simulation.topology, state.getPositions(), output)
 
 ################# Read AMBER restraint file and set ligand decoupling atoms #############
 
@@ -216,29 +228,102 @@ if dum_atom >= 1:
 atoms_list = []
 eq_values = []
 
-# Get ligand atoms for decoupling
+# Get ligand atoms for decoupling and recoupling
 
 # Read atoms list from pdb file
 with open('full.pdb') as f_in:
     lines = (line.rstrip() for line in f_in)
     lines = list(line for line in lines if line) # Non-blank lines in a list   
 
-# Create decoupling list
+atoms_lines = []
+atoms_list = []
+atoms_array = []
+
+# Get lines from decoupling atoms
 for i in range(0, len(lines)):
     if (lines[i][0:6].strip() == 'ATOM') or (lines[i][0:6].strip() == 'HETATM'):
-      if lines[i][17:20].strip() == 'LIG':
-        atoms_list.append(lines[i][6:11].strip())
+      if lines[i][17:20].strip() == 'LIG' or lines[i][17:20].strip() == 'LREF':
+        atoms_lines.append(lines[i])
 
-for i in range(0, len(atoms_list)):
-    # Adjust atom numbering 
-    atoms_list[i]=int(atoms_list[i])-1 
+# Separate the two or four alchemical ligands
+resid_pre = float(atoms_lines[0][22:26].strip())
+j = 0
+for i in range(0, len(atoms_lines)):
+  if i != 0:
+    resid_pre = float(atoms_lines[i-1][22:26].strip())
+  resid_lig = float(atoms_lines[i][22:26].strip())
+  if resid_lig == resid_pre:
+    atoms_list.append(atoms_lines[i][6:11].strip())
+  else:
+    for k in range(0, len(atoms_list)):
+      # Adjust atom numbering 
+      atoms_list[k]=int(atoms_list[k])-1
+    atoms_array.append(list(atoms_list))
+    j = j + 1
+    atoms_list = []
+    atoms_list.append(atoms_lines[i][6:11].strip())
 
-dec_atoms=list(atoms_list)
+# Last ligand
+for k in range(0, len(atoms_list)):
+  # Adjust atom numbering 
+  atoms_list[k]=int(atoms_list[k])-1
+atoms_array.append(list(atoms_list))
 
+print(atoms_array)
+print(len(atoms_array))
+for i in range(0, len(atoms_array)):
+  print('Ligand size %i' %len(atoms_array[i]))
+
+if comp == 'v' or comp == 'e':
+  dec_atoms_A, dec_atoms_B = atoms_array[0], atoms_array[1]
+elif comp == 'x' or comp == 'ex' or comp == 'ee':
+  dec_atoms_A, dec_atoms_B = (atoms_array[0]+atoms_array[1]), (atoms_array[2]+atoms_array[3])
+elif comp == '2v':
+  dec_atoms_A, coupled_atoms1, coupled_atoms2, dec_atoms_B = atoms_array[0], atoms_array[1], atoms_array[2], atoms_array[3]
+  coupled_atoms = coupled_atoms1 + coupled_atoms2
+  all_dec_atoms = dec_atoms_A + dec_atoms_B
+  print('')
+  print('Reference ligand fully coupled atoms')
+  print('')
+  print(coupled_atoms)
+  print('')
+  print('All alchemical atoms')
+  print('')
+  print(all_dec_atoms)
+  print('')
+  # Remove interactions between alchemical and coupled atoms from ligands
+  nonbonded = [f for f in system.getForces() if isinstance(f, NonbondedForce)][0]
+  for i in all_dec_atoms:
+    for j in coupled_atoms:
+      nonbonded.addException(i,j,0.0,1.0,0.0,replace=True)
+elif comp == '1v':
+  coupled_atoms1, dec_atoms_A, dec_atoms_B, coupled_atoms2 = atoms_array[0], atoms_array[1], atoms_array[2], atoms_array[3]
+  coupled_atoms = coupled_atoms1 + coupled_atoms2
+  all_dec_atoms = dec_atoms_A + dec_atoms_B
+  print('')
+  print('Target ligand fully coupled atoms')
+  print('')
+  print(coupled_atoms)
+  print('')
+  print('All alchemical atoms')
+  print('')
+  print(all_dec_atoms)
+  print('')
+  # Remove interactions between alchemical and coupled atoms from ligands
+  nonbonded = [f for f in system.getForces() if isinstance(f, NonbondedForce)][0]
+  for i in all_dec_atoms:
+    for j in coupled_atoms:
+      nonbonded.addException(i,j,0.0,1.0,0.0,replace=True)
 print('')
 print('Ligand decoupling atoms')
 print('')
-print(dec_atoms)
+print(dec_atoms_A)
+print('')
+
+print('')
+print('Ligand recoupling atoms')
+print('')
+print(dec_atoms_B)
 print('')
 
 #########################################################################################
@@ -247,84 +332,20 @@ print('')
 #Pressure control
 system.addForce(MonteCarloBarostat(1*unit_definitions.atmospheres, TMPRT*unit_definitions.kelvin, 25))
 
+# Decoupling/recoupling atoms
 restraint_state = RestraintComposableState(lambda_restraints=1.0)
-ligand_a_atoms = list(dec_atoms)
+
+ligand_a_atoms = list(dec_atoms_A)
 ligand_a_bonds = []
 ligand_a_angles =[]
 ligand_a_torsions =[]
 
-if comp == 'r':
+ligand_b_atoms = list(dec_atoms_B)
+ligand_b_bonds = []
+ligand_b_angles =[]
+ligand_b_torsions =[]
 
-  # No ligand restraints
-  atoms_lc = []
-  atoms_tr = []
-
-if comp == 'c':
-
-  # Only ligand conf restraints
-  atoms_pc = []
-  atoms_tr = []
-
-#Fixed harmonic restraints
-
-if comp == 'l' or comp == 't':
-
-  # Set bond restraint properties 
-  bond_energy_function = "(K/2)*(r-r0)^2;"
-  harmonicforce=CustomBondForce(bond_energy_function)
-  harmonicforce.addPerBondParameter('r0')
-  harmonicforce.addPerBondParameter('K')
-  new_force_index=system.getNumForces()
-  harmonicforce.setForceGroup(new_force_index)
-
-  # Set angle restraint properties 
-  angle_energy_function = "0.5*k*(theta-theta0)^2"
-  angleforce=CustomAngleForce(angle_energy_function)
-  angleforce.addPerAngleParameter('theta0')
-  angleforce.addPerAngleParameter('k')
-  angleforce.setForceGroup(new_force_index)
-
-  # Set torsion restraint properties 
-  torsion_energy_function = "k*(1+cos(n*theta-theta0))"
-  torsionforce=CustomTorsionForce(torsion_energy_function)
-  torsionforce.addPerTorsionParameter('n')
-  torsionforce.addPerTorsionParameter('theta0')
-  torsionforce.addPerTorsionParameter('k')
-  torsionforce.setForceGroup(new_force_index)
-
-
-  # Fixed Host conf restraints
-  print('Fixed host conformational restraints:')
-  print('')
-  for i in range(0, len(atoms_pc)):
-      if len(atoms_pc[i]) == 2:
-        bondlength=eq_pc[i]*unit_definitions.angstroms
-        bondforce=fcn_pc[i]*unit_definitions.kilocalorie_per_mole/unit_definitions.angstroms**2
-        harmonicforce.addBond(atoms_pc[i][0],atoms_pc[i][1], [bondlength,bondforce])
-        print('harmonicforce.addBond('+str(atoms_pc[i][0])+','+str(atoms_pc[i][1])+', ['+str(bondlength)+','+str(bondforce)+']')
-      elif len(atoms_pc[i]) == 4:
-        torsionconst=fcn_pc[i]*unit_definitions.kilocalorie_per_mole
-        torsionforce.addTorsion(atoms_pc[i][0],atoms_pc[i][1],atoms_pc[i][2],atoms_pc[i][3], [1, eq_pc[i]*unit_definitions.radian,torsionconst])
-        print('torsionforce.addTorsion('+str(atoms_pc[i][0])+','+str(atoms_pc[i][1])+','+str(atoms_pc[i][2])+','+str(atoms_pc[i][3])+', [1, '+str(eq_pc[i])+','+str(torsionconst)+'])')
-  print('')
-
-  if comp == 't':
-
-    # Ligand conf restraints
-    print('Fixed ligand conformational restraints:')
-    print('')
-    for i in range(0, len(atoms_lc)):
-      if len(atoms_lc[i]) == 4:
-        torsionconst=fcn_lc[i]*unit_definitions.kilocalorie_per_mole
-        torsionforce.addTorsion(atoms_lc[i][0],atoms_lc[i][1],atoms_lc[i][2],atoms_lc[i][3], [1, eq_lc[i]*unit_definitions.radian,torsionconst])
-        print('torsionforce.addTorsion('+str(atoms_lc[i][0])+','+str(atoms_lc[i][1])+','+str(atoms_lc[i][2])+','+str(atoms_lc[i][3])+', [1, '+str(eq_lc[i])+','+str(torsionconst)+'])')
-    print('')
-
-  system.addForce(harmonicforce) # after
-  system.addForce(angleforce) # after
-  system.addForce(torsionforce) # after 
-
-#Lambda-dependent harmonic restraints
+#Apply harmonic restraints
 
 # Set bond restraint properties 
 bond_energy_function = "lambda_restraints*(K/2)*(r-r0)^2;"
@@ -352,56 +373,51 @@ torsionforce.addPerTorsionParameter('k')
 torsionforce.addGlobalParameter('lambda_restraints', 1.0)
 torsionforce.setForceGroup(new_force_index)
 
-if comp == 'a' or comp == 'r' or comp == 'm' or comp == 'n':
+# Host conf restraints
+print('Host conformational restraints:')
+print('')
+for i in range(0, len(atoms_pc)):
+    if len(atoms_pc[i]) == 2:
+      bondlength=eq_pc[i]*unit_definitions.angstroms
+      bondforce=fcn_pc[i]*unit_definitions.kilocalorie_per_mole/unit_definitions.angstroms**2
+      harmonicforce.addBond(atoms_pc[i][0],atoms_pc[i][1], [bondlength,bondforce])
+      print('harmonicforce.addBond('+str(atoms_pc[i][0])+','+str(atoms_pc[i][1])+', ['+str(bondlength)+','+str(bondforce)+']')
+    elif len(atoms_pc[i]) == 4:
+      torsionconst=fcn_pc[i]*unit_definitions.kilocalorie_per_mole
+      torsionforce.addTorsion(atoms_pc[i][0],atoms_pc[i][1],atoms_pc[i][2],atoms_pc[i][3], [1, eq_pc[i]*unit_definitions.radian,torsionconst])
+      print('torsionforce.addTorsion('+str(atoms_pc[i][0])+','+str(atoms_pc[i][1])+','+str(atoms_pc[i][2])+','+str(atoms_pc[i][3])+', [1, '+str(eq_pc[i])+','+str(torsionconst)+'])')
+print('')
 
-  # Lambda dependent Host conf restraints
-  print('Lambda dependent host conformational restraints:')
-  print('')
-  for i in range(0, len(atoms_pc)):
-      if len(atoms_pc[i]) == 2:
-        bondlength=eq_pc[i]*unit_definitions.angstroms
-        bondforce=fcn_pc[i]*unit_definitions.kilocalorie_per_mole/unit_definitions.angstroms**2
-        harmonicforce.addBond(atoms_pc[i][0],atoms_pc[i][1], [bondlength,bondforce])
-        print('harmonicforce.addBond('+str(atoms_pc[i][0])+','+str(atoms_pc[i][1])+', ['+str(bondlength)+','+str(bondforce)+']')
-      elif len(atoms_pc[i]) == 4:
-        torsionconst=fcn_pc[i]*unit_definitions.kilocalorie_per_mole
-        torsionforce.addTorsion(atoms_pc[i][0],atoms_pc[i][1],atoms_pc[i][2],atoms_pc[i][3], [1, eq_pc[i]*unit_definitions.radian,torsionconst])
-        print('torsionforce.addTorsion('+str(atoms_pc[i][0])+','+str(atoms_pc[i][1])+','+str(atoms_pc[i][2])+','+str(atoms_pc[i][3])+', [1, '+str(eq_pc[i])+','+str(torsionconst)+'])')
-  print('')
+# TR restraints
+print('Ligand TR restraints:')
+print('')
+for i in range(0, len(atoms_tr)):
+    if len(atoms_tr[i]) == 2:
+      bondlength=eq_tr[i]*unit_definitions.angstroms
+      bondforce=fcn_tr[i]*unit_definitions.kilocalorie_per_mole/unit_definitions.angstroms**2
+      harmonicforce.addBond(atoms_tr[i][0],atoms_tr[i][1], [bondlength,bondforce])
+      print('harmonicforce.addBond('+str(atoms_tr[i][0])+','+str(atoms_tr[i][1])+', ['+str(bondlength)+','+str(bondforce)+']')
+    elif len(atoms_tr[i]) == 3:
+      restrainedangle=eq_tr[i]*unit_definitions.radians
+      angleconst=fcn_tr[i]*unit_definitions.kilocalorie_per_mole/unit_definitions.radian**2
+      angleforce.addAngle(atoms_tr[i][0],atoms_tr[i][1],atoms_tr[i][2], [restrainedangle,angleconst])
+      print('angleforce.addAngle('+str(atoms_tr[i][0])+','+str(atoms_tr[i][1])+','+str(atoms_tr[i][2])+', ['+str(restrainedangle)+','+str(angleconst)+']')
+    elif len(atoms_tr[i]) == 4:
+      torsionconst=fcn_tr[i]*unit_definitions.kilocalorie_per_mole
+      torsionforce.addTorsion(atoms_tr[i][0],atoms_tr[i][1],atoms_tr[i][2],atoms_tr[i][3], [1, eq_tr[i]*unit_definitions.radian,torsionconst])
+      print('torsionforce.addTorsion('+str(atoms_tr[i][0])+','+str(atoms_tr[i][1])+','+str(atoms_tr[i][2])+','+str(atoms_tr[i][3])+', [1, '+str(eq_tr[i])+','+str(torsionconst)+'])')
+print('')
 
-if comp == 'l' or comp == 'c' or comp == 'm' or comp == 'n':
-
-  # Lambda dependent Ligand conf restraints
-  print('Lambda dependent ligand conformational restraints:')
-  print('')
-  for i in range(0, len(atoms_lc)):
+# Ligand conf restraints
+print('Ligand conformational restraints:')
+print('')
+for i in range(0, len(atoms_lc)):
     if len(atoms_lc[i]) == 4:
       torsionconst=fcn_lc[i]*unit_definitions.kilocalorie_per_mole
       torsionforce.addTorsion(atoms_lc[i][0],atoms_lc[i][1],atoms_lc[i][2],atoms_lc[i][3], [1, eq_lc[i]*unit_definitions.radian,torsionconst])
       print('torsionforce.addTorsion('+str(atoms_lc[i][0])+','+str(atoms_lc[i][1])+','+str(atoms_lc[i][2])+','+str(atoms_lc[i][3])+', [1, '+str(eq_lc[i])+','+str(torsionconst)+'])')
-  print('')
+print('')
 
-if comp == 't' or comp == 'm': 
-
-  # TR restraints
-  print('Lambda dependent ligand TR restraints:')
-  print('')
-  for i in range(0, len(atoms_tr)):
-      if len(atoms_tr[i]) == 2:
-        bondlength=eq_tr[i]*unit_definitions.angstroms
-        bondforce=fcn_tr[i]*unit_definitions.kilocalorie_per_mole/unit_definitions.angstroms**2
-        harmonicforce.addBond(atoms_tr[i][0],atoms_tr[i][1], [bondlength,bondforce])
-        print('harmonicforce.addBond('+str(atoms_tr[i][0])+','+str(atoms_tr[i][1])+', ['+str(bondlength)+','+str(bondforce)+']')
-      elif len(atoms_tr[i]) == 3:
-        restrainedangle=eq_tr[i]*unit_definitions.radians
-        angleconst=fcn_tr[i]*unit_definitions.kilocalorie_per_mole/unit_definitions.radian**2
-        angleforce.addAngle(atoms_tr[i][0],atoms_tr[i][1],atoms_tr[i][2], [restrainedangle,angleconst])
-        print('angleforce.addAngle('+str(atoms_tr[i][0])+','+str(atoms_tr[i][1])+','+str(atoms_tr[i][2])+', ['+str(restrainedangle)+','+str(angleconst)+']')
-      elif len(atoms_tr[i]) == 4:
-        torsionconst=fcn_tr[i]*unit_definitions.kilocalorie_per_mole
-        torsionforce.addTorsion(atoms_tr[i][0],atoms_tr[i][1],atoms_tr[i][2],atoms_tr[i][3], [1, eq_tr[i]*unit_definitions.radian,torsionconst])
-        print('torsionforce.addTorsion('+str(atoms_tr[i][0])+','+str(atoms_tr[i][1])+','+str(atoms_tr[i][2])+','+str(atoms_tr[i][3])+', [1, '+str(eq_tr[i])+','+str(torsionconst)+'])')
-  print('')
 
 # Center of Mass (COM) restraints for receptor and the bulk ligand 
 
@@ -447,7 +463,25 @@ if dum_atom > 1:
   comforce.addBond(bondGroups, bondParameters)
   print('comforce.addBond('+str(com_atoms[1])+', '+str(bondParameters[0])+', '+str(bondParameters[1])+', '+str(bondParameters[2])+', '+str(bondParameters[3])+')')
   print('')
- 
+
+if comp == 'x' or comp == 'ex' or comp == 'ee' or comp == '2v' or comp == '1v':
+
+  bondGroups = []
+  bondParameters = []
+
+  # Add second bulk ligand COM restraints
+  print('Second bulk ligand COM restraints:')
+  print('')
+  comforce.addGroup(com_atoms[2])
+  bondGroups.append(2)
+  bondParameters.append(float(fcn_com[2])*unit_definitions.kilocalorie_per_mole/unit_definitions.angstroms**2)
+  bondParameters.append(float(xb)*unit_definitions.angstroms)
+  bondParameters.append(float(yb)*unit_definitions.angstroms)
+  bondParameters.append(float(zb)*unit_definitions.angstroms)
+  comforce.addBond(bondGroups, bondParameters)
+  print('comforce.addBond('+str(com_atoms[2])+', '+str(bondParameters[0])+', '+str(bondParameters[1])+', '+str(bondParameters[2])+', '+str(bondParameters[3])+')')
+  print('')
+
 system.addForce(harmonicforce) # after
 system.addForce(angleforce) # after
 system.addForce(torsionforce) # after 
@@ -455,47 +489,39 @@ if dum_atom >= 1:
   system.addForce(comforce) # after 
 
 #Get date from forcefield
-
 num_a_atoms=len(ligand_a_atoms)
 num_a_bonds=len(ligand_a_bonds)
 num_a_angles=len(ligand_a_angles)
 num_a_torsions=len(ligand_a_torsions)
 
+num_b_atoms=len(ligand_b_atoms)
+num_b_bonds=len(ligand_b_bonds)
+num_b_angles=len(ligand_b_angles)
+num_b_torsions=len(ligand_b_torsions)
+
 #Setup alchemical system
 reload(openmmtools.alchemy)
-factory = openmmtools.alchemy.AbsoluteAlchemicalFactory(consistent_exceptions=False, split_alchemical_forces = True, alchemical_pme_treatment = 'exact') # RIZZI CHECK
+if comp != 'ex':
+  factory = openmmtools.alchemy.AbsoluteAlchemicalFactory(consistent_exceptions=False, split_alchemical_forces = True, alchemical_pme_treatment = 'exact')  #RIZZI CHECK
+else:
+  factory = openmmtools.alchemy.AbsoluteAlchemicalFactory(consistent_exceptions=False, split_alchemical_forces = True, alchemical_pme_treatment = 'direct-space')  #RIZZI CHECK
 reference_system = system
 
-#OpenMM crashes if one adds nonexistent alchemical angles or torsions
-if(num_a_bonds == 0):
-	if(num_a_angles == 0):
-		if(num_a_torsions == 0):
-			alchemical_region_A = openmmtools.alchemy.AlchemicalRegion(alchemical_atoms = ligand_a_atoms, name='A')
-		else:
-			alchemical_region_A = openmmtools.alchemy.AlchemicalRegion(alchemical_atoms = ligand_a_atoms,alchemical_torsions = ligand_a_torsions, name='A')
-	else:
-		if(num_a_torsions == 0):
-			alchemical_region_A = openmmtools.alchemy.AlchemicalRegion(alchemical_atoms = ligand_a_atoms, alchemical_angles = ligand_a_angles, name='A')
-		else:
-			alchemical_region_A = openmmtools.alchemy.AlchemicalRegion(alchemical_atoms = ligand_a_atoms, alchemical_angles = ligand_a_angles, alchemical_torsions = ligand_a_torsions, name='A')
+# Define alchemical regions A and B
+if comp != 'ex':
+  alchemical_region_A = openmmtools.alchemy.AlchemicalRegion(alchemical_atoms = ligand_a_atoms, name='A')
+  alchemical_region_B = openmmtools.alchemy.AlchemicalRegion(alchemical_atoms = ligand_b_atoms, name='B')
 else:
-	if(num_a_angles == 0):
-		if(num_a_torsions == 0):
-			alchemical_region_A = openmmtools.alchemy.AlchemicalRegion(alchemical_atoms = ligand_a_atoms, alchemical_bonds=ligand_a_bonds, name='A')
-		else:
-			alchemical_region_A = openmmtools.alchemy.AlchemicalRegion(alchemical_atoms = ligand_a_atoms, alchemical_bonds=ligand_a_bonds, alchemical_torsions = ligand_a_torsions, name='A')
-	else:
-		if(num_a_torsions == 0):
-			alchemical_region_A = openmmtools.alchemy.AlchemicalRegion(alchemical_atoms = ligand_a_atoms, alchemical_bonds=ligand_a_bonds, alchemical_angles = ligand_a_angles, name='A')
-		else:
-			alchemical_region_A = openmmtools.alchemy.AlchemicalRegion(alchemical_atoms = ligand_a_atoms, alchemical_bonds=ligand_a_bonds, alchemical_angles = ligand_a_angles, alchemical_torsions = ligand_a_torsions, name='A')
+  alchemical_region_A = openmmtools.alchemy.AlchemicalRegion(alchemical_atoms = ligand_a_atoms, name='A', softcore_beta = 4.0)
+  alchemical_region_B = openmmtools.alchemy.AlchemicalRegion(alchemical_atoms = ligand_b_atoms, name='B', softcore_beta = 4.0)
+alchemical_system_in = factory.create_alchemical_system(reference_system, alchemical_regions = [alchemical_region_A, alchemical_region_B])
 
-alchemical_system_in = factory.create_alchemical_system(reference_system, alchemical_regions = [alchemical_region_A])
-
+# Create alchemical states
 alchemical_state_A = openmmtools.alchemy.AlchemicalState.from_system(alchemical_system_in, parameters_name_suffix = 'A')
+alchemical_state_B = openmmtools.alchemy.AlchemicalState.from_system(alchemical_system_in, parameters_name_suffix = 'B')
 reload(openmmtools.alchemy)
 TS = openmmtools.states.ThermodynamicState(alchemical_system_in, temperature=TMPRT*unit_definitions.kelvin, pressure=1*unit_definitions.bar)
-composable_states = [alchemical_state_A, restraint_state]
+composable_states = [alchemical_state_A, alchemical_state_B, restraint_state]
 compound_state = openmmtools.states.CompoundThermodynamicState(thermodynamic_state=TS, composable_states=composable_states)
 reload(openmmtools.alchemy)
 integrator=LangevinIntegrator(TMPRT*unit_definitions.kelvin, GAMMA_LN/unit_definitions.picoseconds, TSTP*unit_definitions.femtoseconds)
@@ -504,101 +530,115 @@ alchemical_system_in=context.getSystem()
 
 #Use offsets to interpolate
 alchemical_state_A = openmmtools.alchemy.AlchemicalState.from_system(alchemical_system_in, parameters_name_suffix = 'A')
+alchemical_state_B = openmmtools.alchemy.AlchemicalState.from_system(alchemical_system_in, parameters_name_suffix = 'B')
 reload(openmmtools.alchemy)
 TS = openmmtools.states.ThermodynamicState(alchemical_system_in, temperature=TMPRT*unit_definitions.kelvin, pressure=1*unit_definitions.bar)
-composable_states = [alchemical_state_A, restraint_state]
+composable_states = [alchemical_state_A, alchemical_state_B, restraint_state]
 compound_state = openmmtools.states.CompoundThermodynamicState(thermodynamic_state=TS, composable_states=composable_states)
 reload(openmmtools.alchemy)
 
 #DEBUG info
-sys = compound_state.get_system()
-file = open('DEBUG_restraint.xml','w')
-file.write(XmlSerializer.serialize(sys))
-file.close()
+#sys = compound_state.get_system()
+#file = open('DEBUG_sdr.xml','w')
+#file.write(XmlSerializer.serialize(sys))
+#file.close()
 
-#Setup lambda values
-lambdas = LAMBDAS
+# Get lambda values
+lambdas = [LBD1 , LBD2]
 
 nstates=len(lambdas)
 print("There will be ", nstates, " states in total")
-print("stepsPerIteration:", stepsPerIteration, " productionIterations: ", productionIterations, "equilibrationIterations: ", equilibrationIterations)
+print("stepsPerIteration:", stepsPerIteration, " productionIterations: ", productionIterations)
 print("Timestep: ", timeStep)
-box_vec = alchemical_system_in.getDefaultPeriodicBoxVectors()
+#box_vec = alchemical_system_in.getDefaultPeriodicBoxVectors()
 print("Box vectors:", box_vec)
 
 #Sanity check
 print("")
 print("Lambdas matrix")
-print("Lrestraints")
+if comp == 'e' or comp =='f':
+  print("Lelec_AB")
+elif comp == 'v' or comp == 'w':
+  print("Lsterics_AB")
 for j in range(len(lambdas)):
-    print("%-15.7f" % lambdas[j])
+    print("%-15.6f" % lambdas[j], end=' ')
+    print("")
+print("")
 
 sampler_states = list()
 thermodynamic_states = list()
 
 for k in range(nstates):
     compound_state = openmmtools.states.CompoundThermodynamicState(thermodynamic_state=TS, composable_states=composable_states)
-    if comp == 'r':
-      compound_state.lambda_sterics_A=0.0
-      compound_state.lambda_electrostatics_A=0.0
-    else:
-      compound_state.lambda_sterics_A=1.0
-      compound_state.lambda_electrostatics_A=1.0
-    compound_state.lambda_restraints=lambdas[k]
+    if(num_a_atoms != 0):
+      if comp == 'e' or comp =='f':
+        compound_state.lambda_sterics_A=1.0
+        compound_state.lambda_sterics_B=1.0
+        compound_state.lambda_electrostatics_A=lambdas[k]
+        compound_state.lambda_electrostatics_B=float(1.0-lambdas[k])
+      elif comp == 'v' or comp =='w' or comp == 'x' or comp == '2v' or comp == '1v':
+        compound_state.lambda_sterics_A=lambdas[k]
+        compound_state.lambda_sterics_B=float(1.0-lambdas[k])
+        compound_state.lambda_electrostatics_A=0.0
+        compound_state.lambda_electrostatics_B=0.0
+      elif comp == 'ex':
+        compound_state.lambda_sterics_A=lambdas[k]
+        compound_state.lambda_sterics_B=float(1.0-lambdas[k])
+        compound_state.lambda_electrostatics_A=lambdas[k]
+        compound_state.lambda_electrostatics_B=float(1.0-lambdas[k])
+      elif comp == 'ee':
+        compound_state.lambda_sterics_A=1.0
+        compound_state.lambda_sterics_B=1.0
+        compound_state.lambda_electrostatics_A=lambdas[k]
+        compound_state.lambda_electrostatics_B=float(1.0-lambdas[k])
+    compound_state.lambda_restraints=1.0
     sys = compound_state.get_system()
-    sampler_states.append(openmmtools.states.SamplerState(positions=inpcrd.positions, box_vectors=box_vec))
+    sampler_states.append(openmmtools.states.SamplerState(positions=posit, velocities=veloc, box_vectors=box_vec))
     thermodynamic_states.append(compound_state)
 
 print("Integrator: LangevinSplittingDynamicsMove")
 print("Sampler: ReplicaExchangeSampler")
 
 lsd_move = openmmtools.mcmc.LangevinSplittingDynamicsMove(timestep=timeStep, collision_rate=GAMMA_LN/unit_definitions.picoseconds, n_steps=stepsPerIteration)
-print('Minimizing......')
 for k in range(nstates):
-      sampler_state = sampler_states[k]
-      thermodynamic_state = thermodynamic_states[k]
-      integrator=LangevinIntegrator(TMPRT*unit_definitions.kelvin, GAMMA_LN/unit_definitions.picoseconds, TSTP*unit_definitions.femtoseconds)
-      context = thermodynamic_state.create_context(integrator)
-      system = context.getSystem()
-      for force in system.getForces(): # RIZZI CHECK
-              if isinstance(force, CustomBondForce):
-                      force.updateParametersInContext(context)
-              elif isinstance(force, HarmonicBondForce):
-                      force.updateParametersInContext(context)
-              elif isinstance(force, HarmonicAngleForce):
-                      force.updateParametersInContext(context)
-              elif isinstance(force, PeriodicTorsionForce):
-                      force.updateParametersInContext(context)
-              elif isinstance(force, CustomAngleForce):
-                      force.updateParametersInContext(context)
-              elif isinstance(force, NonbondedForce):
-                      force.updateParametersInContext(context)
-              elif isinstance(force, CustomNonbondedForce):
-                      force.updateParametersInContext(context)
-              elif isinstance(force, CustomTorsionForce):
-                      force.updateParametersInContext(context)
-      sampler_state.apply_to_context(context)
-      initial_energy = thermodynamic_state.reduced_potential(context)
-      print("Sampler state {}: initial energy {:8.3f}kT".format(k, initial_energy))
-      LocalEnergyMinimizer.minimize(context)
-      sampler_state.update_from_context(context)
-      final_energy = thermodynamic_state.reduced_potential(context)
-      print("Sampler state {}: final energy {:8.3f}kT".format(k, final_energy))
-      del context
-print('Minimized......')
+	sampler_state = sampler_states[k]
+	thermodynamic_state = thermodynamic_states[k]
+	integrator=LangevinIntegrator(TMPRT*unit_definitions.kelvin, GAMMA_LN/unit_definitions.picoseconds, TSTP*unit_definitions.femtoseconds)
+	context = thermodynamic_state.create_context(integrator)
+	system = context.getSystem()
+	for force in system.getForces(): #RIZZI CHECK
+		if isinstance(force, CustomBondForce):
+			force.updateParametersInContext(context)
+		elif isinstance(force, HarmonicBondForce):
+			force.updateParametersInContext(context)
+		elif isinstance(force, HarmonicAngleForce):
+			force.updateParametersInContext(context)
+		elif isinstance(force, PeriodicTorsionForce):
+			force.updateParametersInContext(context)
+		elif isinstance(force, CustomAngleForce):
+			force.updateParametersInContext(context)
+		elif isinstance(force, NonbondedForce):
+			force.updateParametersInContext(context)
+		elif isinstance(force, CustomNonbondedForce):
+			force.updateParametersInContext(context)
+		elif isinstance(force, CustomTorsionForce):
+			force.updateParametersInContext(context)
+	sampler_state.apply_to_context(context)
+	initial_energy = thermodynamic_state.reduced_potential(context)
+	print("Sampler state {}: initial energy {:8.3f}kT".format(k, initial_energy))
+	sampler_state.update_from_context(context)
+	del context
 
 if runflag == 'run':
-      repex_simulation = ReplicaExchangeSampler(mcmc_moves=lsd_move, number_of_iterations=productionIterations)
+	repex_simulation = ReplicaExchangeSampler(mcmc_moves=lsd_move, number_of_iterations=productionIterations)
 
 tmp_dir = './trajectory/'
-storage = os.path.join(tmp_dir, 'restraint.nc')
+storage = os.path.join(tmp_dir, 'sdr.nc')
 reporter = MultiStateReporter(storage, checkpoint_interval=iterationsPerCheckpoint)
 if runflag != 'run':
     repex_simulation = ReplicaExchangeSampler.from_storage(reporter)
 else:
     repex_simulation.create(thermodynamic_states, sampler_states, reporter)
-    print('Equilibrating......')
-    repex_simulation.equilibrate(equilibrationIterations)
     print('Simulating......')
 if runflag == 'recover' or runflag == 'run':
         repex_simulation.run()
