@@ -34,7 +34,7 @@ VMD (Visual Molecular Dynamics) [3] - https://www.ks.uiuc.edu/Development/Downlo
 
 AmberTools20 or later [4] - http://ambermd.org/AmberTools.php
 
-_pmemd.cuda_ software from AMBER20 [4] - http://ambermd.org/GetAmber.php <sup>a
+_pmemd.cuda_ software from AMBER [4] - http://ambermd.org/GetAmber.php <sup>a
 
 
  <sup>a</sup> Not needed if using OpenMM for the simulations
@@ -91,9 +91,17 @@ You should see a ./Results directory inside each ./fe/guest folder, with all of 
 
 To include a new host system, some additional input data is needed, as explained in the user guide. They include three chosen host anchors for the application of restraints, and possibly a few additional variables and files. These can be found inside the ./host-library folder for all hosts from the proposed benchmarks [5], with new hosts being added and validated with time.    
 
+## Using OpenMM with OpenMMtools
+
+GHOAT can run all the equilibration and free energy simulations using the OpenMM simulation engine [10] combined with OpenMMtools [11], which show similar performance to AMBER's _pmemd.cuda_ on GPUs. There are a few differences in the GHOAT input variables between the AMBER and OpenMM calculations, and they are explained in detail in the User Guide. 
+
+To run an example of the OpenMM calculations on same three guests to the CB7 host, the user can perform the tutorial above using the input-openmm.in input file instead of input-amber.in. A user-friendly set of instructions on how to do that is also provided in the installation and tutorial guide, inside the ./doc folder.
+
+
+
 # More information and GHOAT.py citation
 
-Reference [10] explains the GHOAT calculations and applies it to a few sample systems. Please cite it if using the GHOAT.py software. 
+Reference [12] explains the GHOAT calculations and applies it to a few sample systems. Please cite it if using the GHOAT.py software. 
 
 The user guide, inside the ./doc folder, also provides the complete theory behind the calculations, and instructions on how to apply it to any other guest-host system. For more information you can contact the author directly:
 
@@ -128,6 +136,10 @@ Germano Heinzelmann thanks FAPESC and CNPq for the research grants, also Michael
 
 9. M. R. Shirts and J. Chodera (2008) “Statistically optimal analysis of samples from multiple equilibrium states.” Journal of  Chemical Physics, 129, 129105.
 
-10. F. P. S. Souza, G. Heinzelmann and G. F. Caramori (2023) “Investigating the Solvent Effects on Binding Affinity of PAHs−ExBox4+ Complexes: An Alchemical Approach”. Journal of Physical Chemistry B, 127, 249.
+10. P. Eastman, J. Swails, J. D. Chodera, R. T. McGibbon, Y. Zhao, K. A. Beauchamp, L.-P. Wang, A. C. Simmonett, M. P. Harrigan, C. D. Stern, R. P. Wiewiora, B. R. Brooks, and V. S. Pande (2017). “OpenMM 7: Rapid development of high performance algorithms for molecular dynamics.” PLOS Computational Biology, 13, e1005659.
+
+11. J. D. Chodera and M. R. Shirts (2011). "Replica exchange and expanded ensemble simulations as Gibbs multistate: Simple improvements for enhanced mixing." Journal of Chemical Physics, 135, 194110.
+
+12. F. P. S. Souza, G. Heinzelmann and G. F. Caramori (2023) “Investigating the Solvent Effects on Binding Affinity of PAHs−ExBox4+ Complexes: An Alchemical Approach”. Journal of Physical Chemistry B, 127, 249.
 
 
